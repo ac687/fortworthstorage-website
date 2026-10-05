@@ -1,0 +1,29 @@
+@import "tailwindcss" source(".");
+
+/* Fort Worth Storage brand tokens (match the css/*.shared.*.css) */
+@theme {
+  --font-sans: Inter, Arial, sans-serif;
+  --font-display: "DM Sans", Arial, sans-serif;
+  --color-navy: #1f2e4e;
+  --color-brand: #4b70b5;
+  --color-brand-dark: #344e8b;
+  --color-brand-50: #f2f5fb;
+  --color-brand-100: #dbe3f4;
+  /* Call-to-action buttons. Change these two to restyle every CTA. */
+  --color-cta: #4b70b5;
+  --color-cta-hover: #344e8b;
+}
+
+/* The flow renders inside a shadow root, so the Webflow styles can't reach in
+   and these styles can't leak out. */
+:host {
+  all: initial;
+  display: block;
+}
+
+.tu-root {
+  font-family: var(--font-sans);
+  color: var(--color-slate-900);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
