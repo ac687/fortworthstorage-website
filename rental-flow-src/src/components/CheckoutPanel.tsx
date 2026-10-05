@@ -105,7 +105,10 @@ export default function CheckoutPanel({ unit, tier, mode, onBack, scrollToTop, f
               <p className="text-sm text-slate-700">
                 {tier.promoRate !== null ? (
                   <>
-                    <b className="text-brand">{formatPrice(tier.promoRate)}/mo</b> for months 1–2, then <b className="text-navy">{formatPrice(tier.webRate)}/mo</b>
+                    <b className="text-brand">{formatPrice(tier.promoRate)}/mo</b>{' '}
+                    {/* Same duration the unit cards show; unknown durations stay generic. */}
+                    {tier.promoMonths === null ? 'promo price, then' : tier.promoMonths === 1 ? 'for month 1, then' : `for months 1–${tier.promoMonths}, then`}{' '}
+                    <b className="text-navy">{formatPrice(tier.webRate)}/mo</b>
                   </>
                 ) : (
                   <b className="text-navy">{formatPrice(tier.webRate)}/mo</b>
