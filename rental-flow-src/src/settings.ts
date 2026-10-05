@@ -10,6 +10,8 @@ export type SiteSettings = {
   photos?: { src: string; alt: string }[]
   unitPhotos?: Record<string, string>
   tierAmenities?: Record<string, Record<string, string[]>>
+  estimate?: { prepayLastDays?: number }
+  sizeInfo?: Record<string, { summary?: string; fits?: string[] }>
   tiers?: Record<string, { rank?: number; label?: string; copy?: string; highlight?: boolean }>
   checkout?: { brandUuid?: string; facilityUuid?: string; params?: string }
   backup?: { name?: string; street?: string; cityLine?: string; phone?: string }
@@ -126,6 +128,24 @@ export function applySettings(raw: unknown = window.RENTAL_FLOW_SETTINGS): Recor
       if (Object.keys(inner).length) map[scope.trim()] = inner
     }
     config.tierAmenities = map
+  }
+
+  const est = obj(s.estimate)
+  if (est && typeof est.prepayLastDays === 'number' && Number.isInteger(est.prepayLastDays) && est.prepayLastDays >= 0 && est.prepayLastDays <= 28) {
+    config.estimate.prepayLastDays = est.prepayLastDays
+  }
+
+  const si = obj(s.sizeInfo)
+  if (si) {
+    const map: Record<string, { summary: string; fits: string[] }> = {}
+    for (const [size, v] of Object.entries(si)) {
+      const o = obj(v)
+      if (!o || !/^\d+x\d+$/.test(size)) continue
+      const summary = str(o.summary, 160)
+      const fits = Array.isArray(o.fits) ? o.fits.map((f) => str(f, 80)).filter((f): f is string => !!f).slice(0, 6) : []
+      if (summary || fits.length) map[size] = { summary: summary ?? '', fits }
+    }
+    config.sizeInfo = map
   }
 
   const co = obj(s.checkout)

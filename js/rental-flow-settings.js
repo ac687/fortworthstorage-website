@@ -105,4 +105,38 @@ window.RENTAL_FLOW_SETTINGS = {
     // button: '#1769B3',
     // buttonHover: '#0f4f87',
   },
+
+  /* 9. MOVE-IN ESTIMATE RULES
+        prepayLastDays: a same-day rental in the last N days of the month also prepays next
+        month's rent and protection plan, shown in the "Estimated due today" box.
+        5 = the last five days of the month. 0 = turn the rule off. Whole numbers 0 to 28. */
+  estimate: {
+    prepayLastDays: 5,
+  },
+
+  /* 10. WHAT FITS (desktop, beside the estimate on the checkout step)
+         One entry per size ("WIDTHxDEPTH"): a one-line summary and a short list of what fits.
+         Sizes with no entry show nothing. Keep each item short. */
+  sizeInfo: {
+    '10x10': {
+      summary: '100 sq ft, about the size of a standard bedroom.',
+      fits: ['Contents of a 1 to 2 bedroom apartment', 'Living room furniture', 'Bedroom sets', '20 to 30 boxes'],
+    },
+    '10x20': {
+      summary: '200 sq ft, about the size of a one-car garage.',
+      fits: ['Contents of a 3 to 4 bedroom home', 'Motorcycles, ATVs, and small boats', 'Contractor tools and equipment', 'Business inventory'],
+    },
+    '10x30': {
+      summary: '300 sq ft, about the size of a two-car garage.',
+      fits: ['Contents of a large 4 to 5 bedroom home', 'Multiple full-size vehicles or trucks', 'Large boats, RVs, or campers (check dimensions)', 'Business or commercial inventory'],
+    },
+    '20x20': {
+      summary: '400 sq ft, about the size of a large two-car garage.',
+      fits: ['Contents of a large 4 to 5 bedroom home plus garage', 'Multiple full-size vehicles side by side', 'Full business inventory or retail overstock', 'Contractor materials, trailers, and large equipment'],
+    },
+    '20x30': {
+      summary: '600 sq ft, our largest unit.',
+      fits: ['Contents of a very large home plus detached garage', 'Multiple full-size vehicles, trucks, or work vans', 'Complete business or commercial inventory', 'Oversized items, trailers, and bulk materials'],
+    },
+  },
 };

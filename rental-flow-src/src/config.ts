@@ -71,7 +71,15 @@ export const config = {
     protectionCoverage: 2000, // coverage amount shown in the label, dollars
     adminFee: 25, // one time, dollars
     timeZone: 'America/Chicago', // facility time zone, decides what "today" is
+    // A same-day rental in the last N days of the month also prepays next month's rent and
+    // protection plan. 0 turns the rule off. Can also be set in /js/rental-flow-settings.js.
+    prepayLastDays: 5,
   },
+
+  // "What fits" block beside the estimate on desktop, typed in /js/rental-flow-settings.js.
+  // Key = size ("5x5"). summary is one short line; fits is a short list.
+  sizeInfo: {} as Record<string, { summary: string; fits: string[] }>,
+  sizeGuidePath: '/size-guide',
 
   // Px to leave above the flow when scrolling to it (sticky nav height).
   scrollOffset: 90,

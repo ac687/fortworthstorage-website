@@ -273,8 +273,8 @@ export function typeLabel(category: Category, unitType: string) {
 }
 
 export function accessLabel(category: Category, unitType = '') {
-  if (category === 'drive-up') return 'Drive-up access'
-  if (category === 'temperature-controlled') return 'Temperature controlled'
+  if (category === 'drive-up') return 'Drive Up Access'
+  if (category === 'temperature-controlled') return 'Hallway Access'
   if (category === 'parking') return 'Vehicle parking'
   return unitType || 'Self storage'
 }

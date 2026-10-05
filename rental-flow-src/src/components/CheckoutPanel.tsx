@@ -40,6 +40,7 @@ export default function CheckoutPanel({ unit, tier, mode, onBack, scrollToTop, f
   // Only a same-day rental has something due today. Reserve and waitlist don't.
   const estimate = useMemo(() => (mode === 'tenant' ? moveInEstimate(tier) : null), [mode, tier])
   const src = monumentCheckoutUrl(tier.unitGroupUuid, mode)
+  const sizeInfo = config.sizeInfo[`${unit.width}x${unit.depth}`]
 
   // Monument talks to the parent page with postMessage:
   //  - a number      → new content height for the iframe
@@ -105,7 +106,10 @@ export default function CheckoutPanel({ unit, tier, mode, onBack, scrollToTop, f
               <p className="text-sm text-slate-700">
                 {tier.promoRate !== null ? (
                   <>
-                    <b className="text-brand">{formatPrice(tier.promoRate)}/mo</b> for months 1–2, then <b className="text-navy">{formatPrice(tier.webRate)}/mo</b>
+                    <b className="text-brand">{formatPrice(tier.promoRate)}/mo</b>{' '}
+                    {/* Same duration the unit cards show; unknown durations stay generic. */}
+                    {tier.promoMonths === null ? 'promo price, then' : tier.promoMonths === 1 ? 'for month 1, then' : `for months 1–${tier.promoMonths}, then`}{' '}
+                    <b className="text-navy">{formatPrice(tier.webRate)}/mo</b>
                   </>
                 ) : (
                   <b className="text-navy">{formatPrice(tier.webRate)}/mo</b>
@@ -113,6 +117,31 @@ export default function CheckoutPanel({ unit, tier, mode, onBack, scrollToTop, f
               </p>
             </div>
             {!estimate && <p className="mt-2 text-xs text-slate-500">Your final total, including any fees, taxes and protection plan, is shown below before you pay.</p>}
+            {estimate && !estimateDone && sizeInfo && (
+              // Desktop only: fills the space beside the estimate without pushing the estimate down on phones.
+              <div className="mt-5 hidden md:block">
+                {sizeInfo.summary && <p className="text-sm text-slate-600">{sizeInfo.summary}</p>}
+                {sizeInfo.fits.length > 0 && (
+                  <>
+                    <p className="mt-3.5 text-xs font-semibold uppercase tracking-wider text-slate-500">What fits</p>
+                    <ul className="mt-2 flex flex-wrap gap-2">
+                      {sizeInfo.fits.map((f) => (
+                        <li key={f} className="rounded-full border border-brand-100 bg-brand-50 px-3 py-1.5 text-[13px] text-navy">
+                          {f}
+                        </li>
+                      ))}
+                    </ul>
+                  </>
+                )}
+                <p className="mt-4 text-[13px] text-slate-600">
+                  Not sure it fits?{' '}
+                  <a href={config.sizeGuidePath} target="_blank" rel="noopener" className="font-semibold text-brand underline hover:text-brand-dark">
+                    See the size guide
+                  </a>
+                  .
+                </p>
+              </div>
+            )}
           </div>
           {estimate && !estimateDone && <EstimateCard estimate={estimate} collapsed={estimateCollapsed} onToggle={() => setEstimateCollapsed((c) => !c)} />}
         </div>

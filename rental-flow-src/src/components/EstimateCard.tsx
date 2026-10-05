@@ -12,6 +12,7 @@ type Props = {
 export default function EstimateCard({ estimate: e, collapsed, onToggle }: Props) {
   const bodyId = useId()
   const row = 'flex items-start justify-between gap-4 py-1 text-sm'
+  const p = e.prepay
   return (
     <div className="rounded-xl border border-brand-100 bg-brand-50 px-4 py-3" role="group" aria-label="Estimated cost due today">
       <button
@@ -29,6 +30,7 @@ export default function EstimateCard({ estimate: e, collapsed, onToggle }: Props
       </button>
 
       <div id={bodyId} hidden={collapsed} className="mt-2 border-t border-brand-100 pt-2">
+        {p && <p className="mb-0.5 text-[11px] font-medium uppercase tracking-wider text-slate-500">Rest of this month</p>}
         <div className={row}>
           <span className="text-slate-600">
             Rent, {e.periodLabel}
@@ -40,7 +42,10 @@ export default function EstimateCard({ estimate: e, collapsed, onToggle }: Props
         </div>
         {e.promoDiscount > 0 && (
           <div className={row}>
-            <span className="text-emerald-700">{e.promoName || 'Promotion'}</span>
+            <span className="text-emerald-700">
+              {e.promoName || 'Promotion'}
+              {e.promoMonths !== null && e.promoMonths >= 2 && <span className="block text-xs">Discount 1 of {e.promoMonths}</span>}
+            </span>
             <span className="text-emerald-700">-{money(e.promoDiscount)}</span>
           </div>
         )}
@@ -51,7 +56,43 @@ export default function EstimateCard({ estimate: e, collapsed, onToggle }: Props
           </span>
           <span className="text-slate-900">{money(e.protection)}</span>
         </div>
-        <div className={row}>
+
+        {p && (
+          <div className="mt-2.5 rounded-lg border border-brand-100 bg-white px-3 py-2.5">
+            <div className="mb-1 flex items-center justify-between gap-3">
+              <span className="font-display text-[13px] font-bold text-navy">Prepaid for next month</span>
+              <span className="whitespace-nowrap rounded-full bg-brand-100 px-2.5 py-0.5 text-[11px] font-medium text-navy">Upcoming month</span>
+            </div>
+            <div className={row}>
+              <span className="text-slate-600">
+                Rent, {p.periodLabel}
+                <span className="block text-xs text-slate-500">{p.monthName}, full month</span>
+              </span>
+              <span className="text-slate-900">{money(p.rent)}</span>
+            </div>
+            {p.promoDiscount > 0 && (
+              <div className={row}>
+                <span className="text-emerald-700">
+                  {p.promoName || 'Promotion'}
+                  <span className="block text-xs">Discount 2 of {e.promoMonths}</span>
+                </span>
+                <span className="text-emerald-700">-{money(p.promoDiscount)}</span>
+              </div>
+            )}
+            <div className={row}>
+              <span className="text-slate-600">
+                Protection plan: ${e.protectionCoverage.toLocaleString('en-US')} coverage
+                <span className="block text-xs text-slate-500">{p.monthName}, full month</span>
+              </span>
+              <span className="text-slate-900">{money(p.protection)}</span>
+            </div>
+            <p className="mt-1.5 text-xs leading-snug text-slate-500">
+              Because you are renting in the last {p.lastDays} days of the month, {p.monthName}'s rent and protection plan are due today.
+            </p>
+          </div>
+        )}
+
+        <div className={`${row} ${p ? 'pt-2' : ''}`}>
           <span className="text-slate-600">
             Admin fee
             <span className="block text-xs text-slate-500">One time</span>
@@ -62,6 +103,7 @@ export default function EstimateCard({ estimate: e, collapsed, onToggle }: Props
           <span>Estimated total</span>
           <span>{money(e.total)}</span>
         </div>
+        {p && <p className="mt-0.5 text-right text-xs text-slate-500">Includes {money(p.rent - p.promoDiscount + p.protection)} prepaid for {p.monthName}</p>}
         <p className="mt-2 text-xs text-slate-500">Estimate only. Taxes and final promotion terms are confirmed on the next step.</p>
       </div>
     </div>
