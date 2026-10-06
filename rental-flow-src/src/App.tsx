@@ -9,6 +9,7 @@ import SectionBand from './components/SectionBand'
 import FacilityHeader from './components/FacilityHeader'
 import UnitCard from './components/UnitCard'
 import TierModal from './components/TierModal'
+import TypeChooser from './components/TypeChooser'
 import CheckoutPanel from './components/CheckoutPanel'
 
 type Filter = 'all' | Category
@@ -56,6 +57,8 @@ export default function App({ host, layer }: { host: HTMLElement; layer: HTMLEle
   const [sort, setSort] = useState<Sort>('size')
   const [modal, setModal] = useState<{ unit: UnitOption; mode: 'rent' | 'reserve' } | null>(null)
   const [selection, setSelection] = useState<Selection | null>(null)
+  const [chooser, setChooser] = useState<{ size: string; units: UnitOption[] } | null>(null)
+  const rentParamHandled = useRef(false)
   const pushedHistory = useRef(false)
 
   useEffect(() => {
@@ -152,6 +155,63 @@ export default function App({ host, layer }: { host: HTMLElement; layer: HTMLEle
     },
     [startCheckout],
   )
+
+  // Rental buttons elsewhere on the site link to /?rent=10x10#rent-now. A size opens the
+  // tier popup when it has one unit type, or a type chooser when it has several. Adding
+  // &type=temperature-controlled (or drive-up) skips the chooser for that type.
+  // An unknown size just leaves the normal list in view.
+  const openForSize = useCallback(
+    (rawSize: string, type: string | null): boolean => {
+      if (options === null) return false
+      const size = rawSize.toLowerCase().replace(/[^0-9x]/g, '')
+      const matches = options
+        .filter((o) => o.size === size)
+        .sort((a, b) => (a.category === 'drive-up' ? 0 : 1) - (b.category === 'drive-up' ? 0 : 1))
+      if (matches.length === 0) return false
+      const typed = type ? matches.filter((o) => o.category === type) : []
+      if (typed.length > 0) openUnit(typed[0], 'rent')
+      else if (matches.length === 1) openUnit(matches[0], 'rent')
+      else setChooser({ size, units: matches })
+      return true
+    },
+    [options, openUnit],
+  )
+
+  // On arrival: ?rent=SIZE opens that size; ?type=... on its own shows only that unit type.
+  useEffect(() => {
+    if (options === null || rentParamHandled.current) return
+    rentParamHandled.current = true
+    const url = new URL(window.location.href)
+    const rent = url.searchParams.get('rent')
+    const typeRaw = url.searchParams.get('type')
+    if (rent === null && typeRaw === null) return
+    url.searchParams.delete('rent')
+    url.searchParams.delete('type')
+    history.replaceState(history.state, '', url.pathname + url.search + url.hash)
+    const type = typeRaw === 'drive-up' || typeRaw === 'temperature-controlled' ? typeRaw : null
+    requestAnimationFrame(scrollToTop)
+    if (rent !== null) openForSize(rent, type)
+    else if (type && options.some((o) => o.category === type)) setFilter(type)
+  }, [options, openForSize, scrollToTop])
+
+  // Links on this page marked data-rent-size (the size chart's Rent Now buttons) open the
+  // popup in place, with no page reload. Without JS, or before the units have loaded, the
+  // link's own /?rent= address still works.
+  useEffect(() => {
+    const onClick = (e: MouseEvent) => {
+      if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return
+      const a = (e.target as Element | null)?.closest?.('a[data-rent-size]') as HTMLElement | null
+      if (!a) return
+      // Runs first (capture phase) because Webflow's own scroll script otherwise claims
+      // links to this page and cancels the click before it gets here.
+      if (openForSize(a.dataset.rentSize ?? '', a.dataset.rentType ?? null)) {
+        e.preventDefault()
+        e.stopPropagation()
+      }
+    }
+    window.addEventListener('click', onClick, true)
+    return () => window.removeEventListener('click', onClick, true)
+  }, [openForSize])
 
   const backToList = useCallback(() => {
     // Don't use history.back(): steps inside the Monument iframe also add
@@ -257,6 +317,21 @@ export default function App({ host, layer }: { host: HTMLElement; layer: HTMLEle
           </>
         )}
       </div>
+
+      {chooser &&
+        createPortal(
+          <TypeChooser
+            size={chooser.size}
+            units={chooser.units}
+            allowWaitlist={policy.allowWaitlist !== false}
+            onClose={() => setChooser(null)}
+            onChoose={(unit) => {
+              setChooser(null)
+              openUnit(unit, 'rent')
+            }}
+          />,
+          layer,
+        )}
 
       {modal &&
         createPortal(

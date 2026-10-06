@@ -10,6 +10,7 @@ export type SiteSettings = {
   photos?: { src: string; alt: string }[]
   unitPhotos?: Record<string, string>
   tierAmenities?: Record<string, Record<string, string[]>>
+  typeBullets?: Record<string, string[]>
   estimate?: { prepayLastDays?: number }
   sizeInfo?: Record<string, { summary?: string; fits?: string[] }>
   tiers?: Record<string, { rank?: number; label?: string; copy?: string; highlight?: boolean }>
@@ -128,6 +129,16 @@ export function applySettings(raw: unknown = window.RENTAL_FLOW_SETTINGS): Recor
       if (Object.keys(inner).length) map[scope.trim()] = inner
     }
     config.tierAmenities = map
+  }
+
+  const tb = obj(s.typeBullets)
+  if (tb) {
+    const map: Record<string, string[]> = {}
+    for (const [type, list] of Object.entries(tb)) {
+      if (!Array.isArray(list) || !type.trim()) continue
+      map[type.trim()] = list.map((a) => str(a, 120)).filter((a): a is string => !!a)
+    }
+    config.typeBullets = map
   }
 
   const est = obj(s.estimate)

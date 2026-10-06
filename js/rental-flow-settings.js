@@ -15,6 +15,14 @@
    ========================================================================== */
 window.RENTAL_FLOW_SETTINGS = {
 
+  /* UNIT-TYPE CHOOSER  (the popup that asks "Drive Up or Temperature Controlled?" when a size-guide
+        button is clicked for a size that comes in both types)
+        Short bullet points under each type. Key = unit type, as named in Monument (capitals and dashes
+        don't matter). A type with no list here uses the built-in wording. [] shows no bullets. */
+  typeBullets: {
+    'Drive-Up': ['Pull right up to your door', 'Easy for furniture, vehicles and gear'],
+  },
+
   /* 0. TIER AMENITIES  (the bullet points under each tier in the popup)
         Prices, availability and promotions still come live from Monument, but the bullet
         points are typed here so you control the wording. Edit, add or remove lines freely.
