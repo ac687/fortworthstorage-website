@@ -15,14 +15,24 @@
     var v = cents / 100
     return '$' + (v % 1 ? v.toFixed(2) : String(v))
   }
-  // Lowest web rate per size, overall and per unit type (lower-case type name).
+  // Same grouping the rental flow uses, so any spelling Monument sends still matches:
+  // "Temperature Controlled", "Climate-Controlled", "Climate Control"... all count as one kind.
+  function category(type) {
+    var t = String(type || '').toLowerCase()
+    if (t.indexOf('parking') > -1) return 'parking'
+    if (t.indexOf('drive') > -1) return 'drive-up'
+    if (t.indexOf('temperature') > -1 || t.indexOf('climate') > -1) return 'temperature-controlled'
+    return t
+  }
+
+  // Lowest web rate per size, overall and per unit category.
   function lowest(groups) {
     var all = {}, byType = {}
     groups.forEach(function (g) {
       var k = key(g)
       var rate = g.currentWebRate != null ? g.currentWebRate : g.currentStreetRate
       if (!k || typeof rate !== 'number' || !(rate > 0)) return
-      var t = String(g.unitType || '').toLowerCase()
+      var t = category(g.unitType)
       var bt = byType[t] || (byType[t] = {})
       if (all[k] == null || rate < all[k]) all[k] = rate
       if (bt[k] == null || rate < bt[k]) bt[k] = rate
@@ -35,7 +45,7 @@
       var k = els[i].getAttribute('data-starting-price')
       var parts = k.split('x'), nk = sizeKey(parts[0], parts[1])
       var t = els[i].getAttribute('data-price-type')
-      var table = t ? res.byType[t.toLowerCase()] || {} : res.all
+      var table = t ? res.byType[category(t)] || {} : res.all
       els[i].textContent = table[nk] != null ? money(table[nk]) + '/mo' : MISSING
       els[i].style.visibility = ''
     }
@@ -48,7 +58,7 @@
     // Pages whose structured-data text quotes prices for one unit type name it on the script tag.
     var ldType = (document.querySelector('script[src*="starting-prices"]') || {}).getAttribute
       ? document.querySelector('script[src*="starting-prices"]').getAttribute('data-ld-price-type') : null
-    var typed = ldType ? res.byType[ldType.toLowerCase()] || {} : null
+    var typed = ldType ? res.byType[category(ldType)] || {} : null
     var tags = document.querySelectorAll('script[type="application/ld+json"]')
     for (var i = 0; i < tags.length; i++) {
       var data
