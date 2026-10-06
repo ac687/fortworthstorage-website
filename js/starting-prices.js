@@ -15,28 +15,40 @@
     var v = cents / 100
     return '$' + (v % 1 ? v.toFixed(2) : String(v))
   }
+  // Lowest web rate per size, overall and per unit type (lower-case type name).
   function lowest(groups) {
-    var low = {}
+    var all = {}, byType = {}
     groups.forEach(function (g) {
       var k = key(g)
       var rate = g.currentWebRate != null ? g.currentWebRate : g.currentStreetRate
       if (!k || typeof rate !== 'number' || !(rate > 0)) return
-      if (low[k] == null || rate < low[k]) low[k] = rate
+      var t = String(g.unitType || '').toLowerCase()
+      var bt = byType[t] || (byType[t] = {})
+      if (all[k] == null || rate < all[k]) all[k] = rate
+      if (bt[k] == null || rate < bt[k]) bt[k] = rate
     })
-    return low
+    return { all: all, byType: byType }
   }
-  function show(low) {
+  // An element may add data-price-type="Temperature Controlled" to price only that unit type.
+  function show(res) {
     for (var i = 0; i < els.length; i++) {
       var k = els[i].getAttribute('data-starting-price')
-      var parts = k.split('x'), nk = Math.min(+parts[0], +parts[1]) + 'x' + Math.max(+parts[0], +parts[1])
-      els[i].textContent = low[nk] != null ? money(low[nk]) + '/mo' : MISSING
+      var parts = k.split('x'), nk = sizeKey(parts[0], parts[1])
+      var t = els[i].getAttribute('data-price-type')
+      var table = t ? res.byType[t.toLowerCase()] || {} : res.all
+      els[i].textContent = table[nk] != null ? money(table[nk]) + '/mo' : MISSING
       els[i].style.visibility = ''
     }
-    updateStructuredData(low)
+    updateStructuredData(res)
   }
   // Keep the Google structured-data offer prices in step with what is shown.
   function sizeKey(w, d) { return Math.min(+w, +d) + 'x' + Math.max(+w, +d) }
-  function updateStructuredData(low) {
+  function updateStructuredData(res) {
+    var low = res.all
+    // Pages whose structured-data text quotes prices for one unit type name it on the script tag.
+    var ldType = (document.querySelector('script[src*="starting-prices"]') || {}).getAttribute
+      ? document.querySelector('script[src*="starting-prices"]').getAttribute('data-ld-price-type') : null
+    var typed = ldType ? res.byType[ldType.toLowerCase()] || {} : null
     var tags = document.querySelectorAll('script[type="application/ld+json"]')
     for (var i = 0; i < tags.length; i++) {
       var data
@@ -63,6 +75,17 @@
             changed = true
           }
         }
+        // Text like "start from $75/mo for a 5\u00d75" -> live price for that size and type.
+        if (typed) {
+          Object.keys(n).forEach(function (k) {
+            if (typeof n[k] !== 'string') return
+            var s = n[k].replace(/\$[\d.,]+\/mo for a (\d+)\s*[x\u00d7]\s*(\d+)/g, function (all, w, d) {
+              var cents = typed[sizeKey(w, d)]
+              return cents != null ? money(cents) + '/mo for a ' + w + '\u00d7' + d : all
+            })
+            if (s !== n[k]) { n[k] = s; changed = true }
+          })
+        }
         Object.keys(n).forEach(function (k) { walk(n[k]) })
       })(data)
       if (changed) tags[i].textContent = JSON.stringify(data)
@@ -71,10 +94,10 @@
 
   for (var i = 0; i < els.length; i++) els[i].style.visibility = 'hidden'
   var done = false
-  function finish(low) { if (!done) { done = true; show(low) } }
-  setTimeout(function () { finish({}) }, 5000)
+  function finish(res) { if (!done) { done = true; show(res) } }
+  setTimeout(function () { finish({ all: {}, byType: {} }) }, 5000)
   fetch('/api/units', { headers: { accept: 'application/json' } })
     .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json() })
     .then(function (d) { finish(lowest(Array.isArray(d) ? d : [])) })
-    .catch(function () { finish({}) })
+    .catch(function () { finish({ all: {}, byType: {} }) })
 })()
