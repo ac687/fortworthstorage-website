@@ -94,7 +94,7 @@ export default function TierModal({ unit, mode, allowWaitlist = true, onClose, o
                 <h3 className={`font-display text-xl font-bold ${unavailable ? 'text-slate-500' : 'text-navy'}`}>{tier.name}</h3>
                 {tier.copy && <p className="mt-1 text-sm text-slate-500">{tier.copy}</p>}
                 {unavailable ? (
-                  <div className="my-5 flex min-h-[90px] flex-col items-center justify-center text-center">
+                  <div className="my-5 flex min-h-[120px] flex-col items-center justify-center text-center">
                     <strong className="text-3xl font-bold text-slate-500">Sold out</strong>
                     <p className="mt-1 text-xs text-slate-500">No units available in this tier</p>
                   </div>

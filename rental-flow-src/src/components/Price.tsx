@@ -11,11 +11,14 @@ export default function Price({ tier, compact = false }: { tier: Tier; compact?:
   // Labels come from the promotion's name; unknown durations stay generic.
   const { promo: promoLabel, after: afterLabel } = promoLabels(tier)
   const free = tier.promoRate === 0
+  // Same height with or without a promotion, so boxes side by side (the tier popup's three columns) line up.
+  // The unit card sets its own fixed box height, so the compact version needs none.
+  const minH = compact ? '' : 'min-h-[120px]'
 
   if (tier.promoRate !== null) {
     return (
-      <div className="flex flex-col items-center text-center">
-        <span className="w-fit rounded-full bg-brand-100 px-3 py-1 text-[10px] font-bold uppercase tracking-wide text-brand-dark">
+      <div className={`flex flex-col items-center justify-center text-center ${minH}`}>
+        <span className="max-w-full rounded-full bg-brand-100 px-3 py-1 text-[10px] font-bold uppercase leading-tight tracking-wide text-brand-dark">
           {tier.promoName}
         </span>
         <div className="mt-2 grid grid-cols-2 divide-x divide-slate-200">
@@ -42,9 +45,11 @@ export default function Price({ tier, compact = false }: { tier: Tier; compact?:
   }
 
   return (
-    <div className="text-center">
-      <strong className={`${big} font-extrabold text-navy`}>{formatPrice(tier.webRate)}</strong>
-      <span className="text-xs text-slate-500">/mo</span>
+    <div className={`flex flex-col items-center justify-center text-center ${minH}`}>
+      <div>
+        <strong className={`${big} font-extrabold text-navy`}>{formatPrice(tier.webRate)}</strong>
+        <span className="text-xs text-slate-500">/mo</span>
+      </div>
       {strike && <p className="text-xs text-slate-400 line-through">{formatPrice(tier.streetRate)}/mo</p>}
     </div>
   )

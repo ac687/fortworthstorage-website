@@ -42,8 +42,9 @@ export default function UnitCard({ unit, onSelect, allowReservations = true, all
           </div>
         </div>
 
-        <div className="md:mx-4 md:justify-self-center">
-          <div className="rounded-xl border border-brand-100 bg-brand-50/60 px-6 py-4">
+        <div className="md:mx-2 md:justify-self-center">
+          {/* Same size on every card (with or without a promotion) so the list lines up. */}
+          <div className="flex h-[176px] w-full flex-col items-center justify-center rounded-xl border border-brand-100 bg-brand-50/60 px-4 md:w-[300px]">
             {multi && <p className="mb-1 text-center text-[11px] font-semibold uppercase tracking-wide text-slate-500">Starting at</p>}
             <Price tier={unit.fromTier} compact />
           </div>
