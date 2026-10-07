@@ -44,3 +44,9 @@ tier wording, Monument checkout branding, backup facility details and colors. No
 is needed. Invalid or missing values are ignored and defaults are used.
 Which facility is shown is set in Cloudflare (`MONUMENT_FACILITY_UUID`, `MONUMENT_ENV`,
 `GOOGLE_PLACE_ID`), not in this file. For a new site, copy the file and change the values.
+
+## Promotions that start at the first full month
+A promotion named like "50% off first full month" or "First full month free" does not discount the prorated move-in month.
+The cart estimate shows the discount on next month's rent (as a note, or on the prepaid line in the last days of the month).
+The phrases that trigger this are `estimate.fullMonthPromoWords` in `/js/rental-flow-settings.js` (default `['full month']`).
+Unit cards say "First full month" / "Regular rate", and a $0 promo price shows as "Free".

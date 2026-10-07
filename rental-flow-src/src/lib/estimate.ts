@@ -5,6 +5,10 @@ import type { Tier } from './units'
 // (today counts as a full day), the protection plan for the same days, and the
 // one-time admin fee. A rental in the last few days of the month (config.estimate.prepayLastDays)
 // also prepays next month's rent and protection plan. All math is in whole cents so nothing drifts.
+//
+// Promotions start in one of two places. Most start at move-in, so they discount this month's prorated rent.
+// A promotion that starts at the first FULL month (tier.promoFirstFullMonth) leaves the prorated month alone and
+// discounts next month instead: on the prepaid line in the last days of the month, otherwise as a preview note.
 
 export type Prepay = {
   monthName: string // "November"
@@ -14,6 +18,15 @@ export type Prepay = {
   promoDiscount: number // dollars, positive
   protection: number // dollars, full month
   lastDays: number // the rule's setting, for the explanation text
+  promoFirstFullMonth: boolean // this month is the promotion's first full month
+}
+
+export type NextMonthPromo = {
+  promoName: string | null
+  monthName: string // "November"
+  billedLabel: string // "Nov 1"
+  rent: number // dollars, full month before the promotion
+  rentAfterPromo: number // dollars, what that month costs with the promotion
 }
 
 export type Estimate = {
@@ -27,6 +40,8 @@ export type Estimate = {
   protection: number
   protectionCoverage: number // dollars of coverage, for the label
   adminFee: number
+  promoFirstFullMonth: boolean // the promotion starts at the first full month, not at move-in
+  nextMonthPromo: NextMonthPromo | null // preview of the discounted first full month, when it is not billed today
   prepay: Prepay | null // next month's charges, only in the last days of the month
   total: number
 }
@@ -50,7 +65,9 @@ export function moveInEstimate(tier: Tier, now = new Date()): Estimate {
   const rentCents = share(Math.round(tier.webRate * 100))
   // The promotion starts right away, so it discounts this month's prorated rent (payment 1).
   const monthDiscountCents = tier.promoRate !== null ? Math.max(0, Math.round((tier.webRate - tier.promoRate) * 100)) : 0
-  const discountCents = Math.min(rentCents, share(monthDiscountCents))
+  const firstFull = tier.promoFirstFullMonth && tier.promoRate !== null
+  // A first-full-month promotion does not touch the prorated move-in month.
+  const discountCents = firstFull ? 0 : Math.min(rentCents, share(monthDiscountCents))
   const protectionMonthlyCents = Math.round(config.estimate.protectionMonthly * 100)
   const protectionCents = share(protectionMonthlyCents)
   const adminCents = Math.round(config.estimate.adminFee * 100)
@@ -66,7 +83,14 @@ export function moveInEstimate(tier: Tier, now = new Date()): Estimate {
   const nextDays = new Date(Date.UTC(nextYear, nextMonth, 0)).getUTCDate()
   const prepayRentCents = prepaying ? Math.round(tier.webRate * 100) : 0
   const prepayProtectionCents = prepaying ? protectionMonthlyCents : 0
-  const prepayDiscountCents = prepaying && tier.promoMonths !== null && tier.promoMonths >= 2 ? Math.min(prepayRentCents, monthDiscountCents) : 0
+  // A first-full-month promotion discounts the prepaid month itself: it is the first full month.
+  const prepayDiscountCents = prepaying
+    ? firstFull
+      ? Math.min(prepayRentCents, monthDiscountCents)
+      : tier.promoMonths !== null && tier.promoMonths >= 2
+        ? Math.min(prepayRentCents, monthDiscountCents)
+        : 0
+    : 0
 
   const totalCents = rentCents - discountCents + protectionCents + adminCents + prepayRentCents - prepayDiscountCents + prepayProtectionCents
 
@@ -80,6 +104,17 @@ export function moveInEstimate(tier: Tier, now = new Date()): Estimate {
     promoName: discountCents > 0 ? tier.promoName : null,
     promoDiscount: discountCents / 100,
     promoMonths: tier.promoMonths,
+    promoFirstFullMonth: firstFull,
+    nextMonthPromo:
+      firstFull && !prepaying
+        ? {
+            promoName: tier.promoName,
+            monthName: monthLong(nextYear, nextMonth),
+            billedLabel: `${monthShort(nextYear, nextMonth)} 1`,
+            rent: tier.webRate,
+            rentAfterPromo: Math.max(0, Math.round(tier.webRate * 100 - monthDiscountCents)) / 100,
+          }
+        : null,
     protection: protectionCents / 100,
     protectionCoverage: config.estimate.protectionCoverage,
     adminFee: adminCents / 100,
@@ -92,6 +127,7 @@ export function moveInEstimate(tier: Tier, now = new Date()): Estimate {
           promoDiscount: prepayDiscountCents / 100,
           protection: prepayProtectionCents / 100,
           lastDays,
+          promoFirstFullMonth: firstFull,
         }
       : null,
     total: totalCents / 100,

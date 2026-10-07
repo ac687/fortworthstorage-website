@@ -78,6 +78,9 @@ export const config = {
     // A same-day rental in the last N days of the month also prepays next month's rent and
     // protection plan. 0 turns the rule off. Can also be set in /js/rental-flow-settings.js.
     prepayLastDays: 5,
+    // A promotion whose name contains one of these phrases starts at the first FULL month, so the
+    // prorated move-in month is not discounted. Case does not matter. Can also be set in /js/rental-flow-settings.js.
+    fullMonthPromoWords: ['full month'] as string[],
   },
 
   // "What fits" block beside the estimate on desktop, typed in /js/rental-flow-settings.js.

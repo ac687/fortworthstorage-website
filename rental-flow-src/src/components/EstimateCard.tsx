@@ -1,6 +1,6 @@
 import { useId } from 'react'
 import { ChevronDown } from 'lucide-react'
-import { money, type Estimate } from '../lib/estimate'
+import { money, type Estimate, type NextMonthPromo } from '../lib/estimate'
 
 type Props = {
   estimate: Estimate
@@ -74,7 +74,9 @@ export default function EstimateCard({ estimate: e, collapsed, onToggle }: Props
               <div className={row}>
                 <span className="text-emerald-700">
                   {p.promoName || 'Promotion'}
-                  <span className="block text-xs">Discount 2 of {e.promoMonths}</span>
+                  <span className="block text-xs">
+                    {p.promoFirstFullMonth ? (e.promoMonths !== null && e.promoMonths >= 2 ? `Discount 1 of ${e.promoMonths}` : 'Applies to your first full month') : `Discount 2 of ${e.promoMonths}`}
+                  </span>
                 </span>
                 <span className="text-emerald-700">-{money(p.promoDiscount)}</span>
               </div>
@@ -104,8 +106,31 @@ export default function EstimateCard({ estimate: e, collapsed, onToggle }: Props
           <span>{money(e.total)}</span>
         </div>
         {p && <p className="mt-0.5 text-right text-xs text-slate-500">Includes {money(p.rent - p.promoDiscount + p.protection)} prepaid for {p.monthName}</p>}
+        {e.nextMonthPromo && <NextMonthNote n={e.nextMonthPromo} months={e.promoMonths} />}
         <p className="mt-2 text-xs text-slate-500">Estimate only. Taxes and final promotion terms are confirmed on the next step.</p>
       </div>
+    </div>
+  )
+}
+
+// Shown when a first-full-month promotion is not billed today: says where the discount lands.
+function NextMonthNote({ n, months }: { n: NextMonthPromo; months: number | null }) {
+  const free = n.rentAfterPromo === 0
+  return (
+    <div className="mt-2.5 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2.5">
+      <p className="text-sm font-semibold text-emerald-800">{n.promoName || 'Promotion'}</p>
+      <p className="mt-0.5 text-xs leading-snug text-emerald-800">
+        {free ? (
+          <>
+            Your first full month is {n.monthName}, and its rent is <b>free</b> (normally {money(n.rent).replace('.00', '')}). Nothing is discounted today.
+          </>
+        ) : (
+          <>
+            Your first full month is {n.monthName}. Rent for {n.monthName} is <b>{money(n.rentAfterPromo).replace('.00', '')}</b> instead of {money(n.rent).replace('.00', '')}, billed {n.billedLabel}. Nothing is discounted today.
+          </>
+        )}
+        {months !== null && months >= 2 && ` The discount covers your first ${months} full months.`}
+      </p>
     </div>
   )
 }

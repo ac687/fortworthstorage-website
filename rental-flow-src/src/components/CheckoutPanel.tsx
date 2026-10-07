@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { ArrowLeft, Phone } from 'lucide-react'
 import type { FacilityInfo, Tier, UnitOption } from '../lib/units'
-import { formatPrice, typeLabel } from '../lib/units'
+import { formatPrice, promoLabels, typeLabel } from '../lib/units'
 import { moveInEstimate } from '../lib/estimate'
 import EstimateCard from './EstimateCard'
 import { config, monumentCheckoutUrl, type CheckoutMode } from '../config'
@@ -106,9 +106,9 @@ export default function CheckoutPanel({ unit, tier, mode, onBack, scrollToTop, f
               <p className="text-sm text-slate-700">
                 {tier.promoRate !== null ? (
                   <>
-                    <b className="text-brand">{formatPrice(tier.promoRate)}/mo</b>{' '}
+                    <b className="text-brand">{tier.promoRate === 0 ? 'Free' : `${formatPrice(tier.promoRate)}/mo`}</b>{' '}
                     {/* Same duration the unit cards show; unknown durations stay generic. */}
-                    {tier.promoMonths === null ? 'promo price, then' : tier.promoMonths === 1 ? 'for month 1, then' : `for months 1–${tier.promoMonths}, then`}{' '}
+                    {promoLabels(tier).sentence}{' '}
                     <b className="text-navy">{formatPrice(tier.webRate)}/mo</b>
                   </>
                 ) : (

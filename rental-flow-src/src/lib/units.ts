@@ -31,6 +31,7 @@ export type Tier = {
   promoName: string | null
   promoRate: number | null // dollars / month while the promo applies
   promoMonths: number | null // how many months it applies, when the name says so
+  promoFirstFullMonth: boolean // true when it starts at the first full month, so the prorated move-in month is not discounted
   features: string[]
 }
 
@@ -151,14 +152,15 @@ const NUMBER_WORDS: Record<string, number> = {
 }
 
 // Reads how long a promotion lasts from its name ("First Month Free",
-// "50% Off Your First Two Rent Payments"). Returns null when the name doesn't
+// "50% Off Your First Two Rent Payments", "First Full Month Free"). Returns null when the name doesn't
 // say, so the page never states a duration it can't back up.
 export function promoMonthsFromName(name: string): number | null {
   const n = name.toLowerCase()
   const num = (w: string) => (/^\d+$/.test(w) ? Number(w) : NUMBER_WORDS[w] ?? null)
-  let m = n.match(/\b(?:first|1st)\s+(?:(\d+|[a-z]+)\s+)?(?:months?|rent|payments?)\b/)
+  let m = n.match(/\b(?:first|1st)\s+(?:(\d+|[a-z]+)\s+)?(?:full\s+)?(?:months?|rent|payments?)\b/)
   if (m) {
-    if (!m[1]) return 1
+    // "first full month": the word "full" is not a count.
+    if (!m[1] || m[1] === 'full') return 1
     const v = num(m[1])
     if (v) return v
   }
@@ -192,6 +194,26 @@ function hardCodedAmenities(g: ApiUnitGroup, tierName: string): string[] | null 
   return null
 }
 
+// True when the promotion's name says it starts at the first full month (settings: estimate.fullMonthPromoWords).
+export function startsAtFirstFullMonth(name: string): boolean {
+  const n = name.toLowerCase()
+  return config.estimate.fullMonthPromoWords.some((w) => !!w.trim() && n.includes(w.trim().toLowerCase()))
+}
+
+// Wording for the promo price and the regular price, shared by the unit card and the checkout header.
+export function promoLabels(tier: Tier): { promo: string; after: string; sentence: string } {
+  const n = tier.promoMonths
+  if (tier.promoFirstFullMonth) {
+    const sentence = n === null || n === 1 ? 'for your first full month, then' : `for your first ${n} full months, then`
+    return { promo: n === null || n === 1 ? 'First full month' : `First ${n} full months`, after: 'Regular rate', sentence }
+  }
+  return {
+    promo: n === null ? 'Promo price' : n === 1 ? 'Month 1' : `Months 1–${n}`,
+    after: n === null ? 'Regular rate' : n === 1 ? 'Month 2+' : `Month ${n + 1}+`,
+    sentence: n === null ? 'promo price, then' : n === 1 ? 'for month 1, then' : `for months 1–${n}, then`,
+  }
+}
+
 function toTier(g: ApiUnitGroup): Tier {
   const name = (g.description || 'Standard').trim()
   const meta = config.tiers[name] ?? { rank: 9, label: '', copy: '' }
@@ -212,6 +234,7 @@ function toTier(g: ApiUnitGroup): Tier {
     streetRate: street,
     promoName: hasPromo ? promo!.promotionName! : null,
     promoMonths: hasPromo ? promoMonthsFromName(promo!.promotionName!) : null,
+    promoFirstFullMonth: hasPromo && startsAtFirstFullMonth(promo!.promotionName!),
     promoRate: hasPromo ? Math.max(0, Math.round((web - discount) * 100) / 100) : null,
     features: hardCodedAmenities(g, name) ?? (g.amenities ?? []).filter((a) => a.present).map((a) => a.key),
   }

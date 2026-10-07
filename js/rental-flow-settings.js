@@ -117,9 +117,13 @@ window.RENTAL_FLOW_SETTINGS = {
   /* 9. MOVE-IN ESTIMATE RULES
         prepayLastDays: a same-day rental in the last N days of the month also prepays next
         month's rent and protection plan, shown in the "Estimated due today" box.
-        5 = the last five days of the month. 0 = turn the rule off. Whole numbers 0 to 28. */
+        5 = the last five days of the month. 0 = turn the rule off. Whole numbers 0 to 28.
+        fullMonthPromoWords: a promotion whose name contains one of these phrases starts at the first FULL
+        month, so the prorated move-in month is not discounted (the discount shows on next month's rent
+        instead). Case does not matter. Most promotions start at move-in and need nothing here. */
   estimate: {
     prepayLastDays: 5,
+    fullMonthPromoWords: ['full month'],
   },
 
   /* 10. WHAT FITS (desktop, beside the estimate on the checkout step)
