@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react'
 import { Check, X } from 'lucide-react'
 import { config } from '../config'
 import type { UnitOption } from '../lib/units'
-import { accessLabel, formatPrice, typeLabel } from '../lib/units'
+import { accessLabel, formatPrice, promoLabels, typeLabel } from '../lib/units'
 
 type Props = {
   size: string // "10x10"
@@ -23,6 +23,31 @@ function bulletsFor(unit: UnitOption): string[] {
   const key = Object.keys(config.typeBullets).find((k) => norm(k) === norm(unit.unitType))
   if (key) return config.typeBullets[key]
   return DEFAULT_BULLETS[unit.category] ?? []
+}
+
+// Cheapest way in: the lowest promo price when any tier has a promotion, otherwise the lowest web rate.
+function PriceBadge({ unit }: { unit: UnitOption }) {
+  const promoTiers = unit.tiers.filter((t) => t.promoRate !== null && t.available > 0)
+  const best = promoTiers.sort((a, b) => (a.promoRate ?? 0) - (b.promoRate ?? 0))[0]
+  if (!best || best.promoRate === null) {
+    return (
+      <span className="inline-block rounded-full bg-brand-50 px-3 py-1 text-xs font-semibold text-navy">
+        Starting from {formatPrice(unit.fromTier.webRate)}/mo
+      </span>
+    )
+  }
+  const { promo: promoLabel } = promoLabels(best)
+  const first = best.promoRate === 0 ? 'Free' : `${formatPrice(best.promoRate)}/mo`
+  return (
+    <div>
+      <span className="inline-block rounded-full bg-brand-50 px-3 py-1 text-xs font-semibold text-navy">
+        {best.promoRate === 0 ? '' : 'From '}<strong className="text-sm font-extrabold text-brand">{first}</strong> · {promoLabel.toLowerCase()}
+      </span>
+      <p className="mt-1.5 text-xs text-slate-500">
+        then {formatPrice(best.webRate)}/mo{best.streetRate > best.webRate && <span className="ml-1 line-through text-slate-400">{formatPrice(best.streetRate)}</span>}
+      </p>
+    </div>
+  )
 }
 
 // Shown when a size-guide button is clicked for a size that comes in more than one
@@ -82,9 +107,7 @@ export default function TypeChooser({ size, units, allowWaitlist = true, onClose
                   {soldOut ? (
                     <span className="inline-block rounded-full bg-slate-200 px-3 py-1 text-xs font-bold text-slate-600">Sold out</span>
                   ) : (
-                    <span className="inline-block rounded-full bg-brand-50 px-3 py-1 text-xs font-semibold text-navy">
-                      Starting from {formatPrice(unit.fromTier.webRate)}/mo
-                    </span>
+                    <PriceBadge unit={unit} />
                   )}
                 </div>
                 <h3 className="font-display text-xl font-bold text-navy">{title}</h3>

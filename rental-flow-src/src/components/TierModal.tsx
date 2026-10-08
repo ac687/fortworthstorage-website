@@ -1,9 +1,9 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Check, X } from 'lucide-react'
 import type { Tier, UnitOption } from '../lib/units'
 import { availabilityBadge, typeLabel } from '../lib/units'
 import type { CheckoutMode } from '../config'
-import Price from './Price'
+import Price, { needsSmallPrice } from './Price'
 
 type Props = {
   unit: UnitOption
@@ -29,10 +29,16 @@ export default function TierModal({ unit, mode, allowWaitlist = true, onClose, o
     }
   }, [onClose])
 
-  const cols = unit.tiers.length >= 3 ? 'md:grid-cols-3' : unit.tiers.length === 2 ? 'md:grid-cols-2' : ''
+  const cols = unit.tiers.length >= 3 ? 'lg:grid-cols-3' : unit.tiers.length === 2 ? 'lg:grid-cols-2' : ''
   // The waitlist is only offered when every tier is sold out. If any tier has
   // units, a sold-out tier is just shown as sold out so people pick what is open.
   const anyAvailable = unit.tiers.some((t) => t.available > 0)
+  // One price size across the row: if any tier needs the smaller size, all of them use it.
+  // Every card stacks its prices together if any one of them is too narrow for side by side.
+  const [fits, setFits] = useState<Record<string, boolean>>({})
+  const reportFit = (name: string, ok: boolean) => setFits((prev) => (prev[name] === ok ? prev : { ...prev, [name]: ok }))
+  const stackRow = Object.values(fits).some((ok) => !ok)
+  const anySmall = unit.tiers.some((t) => t.available > 0 && needsSmallPrice(t))
 
   return (
     <div className="fixed inset-0 z-[2147483000] grid place-items-center bg-navy/65 p-4" onClick={onClose}>
@@ -42,7 +48,7 @@ export default function TierModal({ unit, mode, allowWaitlist = true, onClose, o
         role="dialog"
         aria-modal="true"
         aria-labelledby="tu-tier-title"
-        className="tu-root max-h-[90vh] w-full max-w-4xl overflow-auto rounded-2xl bg-white p-5 shadow-2xl outline-none sm:p-8"
+        className="tu-root max-h-[90vh] w-full max-w-5xl overflow-auto rounded-2xl bg-white p-5 shadow-2xl outline-none sm:p-8"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="mb-6 flex items-start justify-between gap-4">
@@ -100,7 +106,7 @@ export default function TierModal({ unit, mode, allowWaitlist = true, onClose, o
                   </div>
                 ) : (
                   <div className="my-5">
-                    <Price tier={tier} />
+                    <Price tier={tier} small={anySmall} stack={stackRow} onFit={(fits) => reportFit(tier.name, fits)} />
                   </div>
                 )}
                 <ul className={`flex flex-1 flex-col gap-3 text-sm ${unavailable ? 'text-slate-500' : 'text-slate-800'}`}>
