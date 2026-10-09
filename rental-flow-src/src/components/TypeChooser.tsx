@@ -25,7 +25,8 @@ function bulletsFor(unit: UnitOption): string[] {
   return DEFAULT_BULLETS[unit.category] ?? []
 }
 
-// Cheapest way in: the lowest promo price when any tier has a promotion, otherwise the lowest web rate.
+// Cheapest way in: the lowest promo price when any in-stock tier has a promotion (with the promo's
+// name above it so it reads as a promo), otherwise the lowest web rate.
 function PriceBadge({ unit }: { unit: UnitOption }) {
   const promoTiers = unit.tiers.filter((t) => t.promoRate !== null && t.available > 0)
   const best = promoTiers.sort((a, b) => (a.promoRate ?? 0) - (b.promoRate ?? 0))[0]
@@ -37,14 +38,20 @@ function PriceBadge({ unit }: { unit: UnitOption }) {
     )
   }
   const { promo: promoLabel } = promoLabels(best)
-  const first = best.promoRate === 0 ? 'Free' : `${formatPrice(best.promoRate)}/mo`
+  const free = best.promoRate === 0
+  const first = free ? 'Free' : `${formatPrice(best.promoRate)}/mo`
   return (
     <div>
-      <span className="inline-block rounded-full bg-brand-50 px-3 py-1 text-xs font-semibold text-navy">
-        {best.promoRate === 0 ? '' : 'From '}<strong className="text-sm font-extrabold text-brand">{first}</strong> · {promoLabel.toLowerCase()}
+      <span className="mb-1.5 inline-block max-w-full rounded-full bg-brand-100 px-3 py-1 text-[10px] font-bold uppercase leading-tight tracking-wide text-brand-dark">
+        {best.promoName}
       </span>
+      <p className="text-sm font-semibold text-navy">
+        {free ? '' : 'From '}
+        <strong className="text-lg font-extrabold text-brand">{first}</strong> · {promoLabel}
+      </p>
       <p className="mt-1.5 text-xs text-slate-500">
-        then {formatPrice(best.webRate)}/mo{best.streetRate > best.webRate && <span className="ml-1 line-through text-slate-400">{formatPrice(best.streetRate)}</span>}
+        Then {formatPrice(best.webRate)}/mo
+        {best.streetRate > best.webRate && <span className="ml-1 text-slate-400 line-through">{formatPrice(best.streetRate)}</span>}
       </p>
     </div>
   )
