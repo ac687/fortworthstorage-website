@@ -27,14 +27,17 @@ function bulletsFor(unit: UnitOption): string[] {
 
 // Cheapest way in: the lowest promo price when any in-stock tier has a promotion (with the promo's
 // name above it so it reads as a promo), otherwise the lowest web rate.
-function PriceBadge({ unit }: { unit: UnitOption }) {
+// `reserve` keeps no-promo cards as tall as promo cards so titles line up when only some types have a promo.
+function PriceBadge({ unit, reserve }: { unit: UnitOption; reserve: boolean }) {
   const promoTiers = unit.tiers.filter((t) => t.promoRate !== null && t.available > 0)
   const best = promoTiers.sort((a, b) => (a.promoRate ?? 0) - (b.promoRate ?? 0))[0]
   if (!best || best.promoRate === null) {
     return (
-      <span className="inline-block rounded-full bg-brand-50 px-3 py-1 text-xs font-semibold text-navy">
-        Starting from {formatPrice(unit.fromTier.webRate)}/mo
-      </span>
+      <div className={reserve ? 'sm:min-h-[81px]' : ''}>
+        <span className="inline-block rounded-full bg-brand-50 px-3 py-1 text-xs font-semibold text-navy">
+          Starting from {formatPrice(unit.fromTier.webRate)}/mo
+        </span>
+      </div>
     )
   }
   const { promo: promoLabel } = promoLabels(best)
@@ -76,6 +79,7 @@ export default function TypeChooser({ size, units, allowWaitlist = true, onClose
     }
   }, [onClose])
 
+  const anyPromo = units.some((u) => u.totalAvailable > 0 && u.tiers.some((t) => t.promoRate !== null && t.available > 0))
   const cols = units.length === 2 ? 'sm:grid-cols-2' : units.length >= 3 ? 'sm:grid-cols-3' : ''
 
   return (
@@ -114,7 +118,7 @@ export default function TypeChooser({ size, units, allowWaitlist = true, onClose
                   {soldOut ? (
                     <span className="inline-block rounded-full bg-slate-200 px-3 py-1 text-xs font-bold text-slate-600">Sold out</span>
                   ) : (
-                    <PriceBadge unit={unit} />
+                    <PriceBadge unit={unit} reserve={anyPromo} />
                   )}
                 </div>
                 <h3 className="font-display text-xl font-bold text-navy">{title}</h3>
