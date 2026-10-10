@@ -4,6 +4,21 @@ import type { Tier, UnitOption } from '../lib/units'
 import { availabilityBadge, typeLabel, withoutPromo } from '../lib/units'
 import type { CheckoutMode } from '../config'
 import Price, { needsSmallPrice } from './Price'
+import TierAccordion from './TierAccordion'
+
+// Same breakpoint as Tailwind's `lg`: three side-by-side cards from here up, the accordion below.
+function useDesktop() {
+  const query = '(min-width: 1024px)'
+  const [desktop, setDesktop] = useState(() => window.matchMedia(query).matches)
+  useEffect(() => {
+    const m = window.matchMedia(query)
+    const update = () => setDesktop(m.matches)
+    m.addEventListener('change', update)
+    update()
+    return () => m.removeEventListener('change', update)
+  }, [])
+  return desktop
+}
 
 type Props = {
   unit: UnitOption
@@ -15,6 +30,7 @@ type Props = {
 
 export default function TierModal({ unit, mode, allowWaitlist = true, onClose, onChoose }: Props) {
   const dialogRef = useRef<HTMLDivElement>(null)
+  const desktop = useDesktop()
 
   // Esc closes; focus the dialog; lock page scroll while open.
   useEffect(() => {
@@ -41,29 +57,32 @@ export default function TierModal({ unit, mode, allowWaitlist = true, onClose, o
   const anySmall = unit.tiers.some((t) => t.available > 0 && needsSmallPrice(t))
 
   return (
-    <div className="fixed inset-0 z-[2147483000] grid place-items-center bg-navy/65 p-4" onClick={onClose}>
+    <div className="fixed inset-0 z-[2147483000] flex items-end justify-center bg-navy/65 pt-3 sm:items-center sm:p-4" onClick={onClose}>
       <div
         ref={dialogRef}
         tabIndex={-1}
         role="dialog"
         aria-modal="true"
         aria-labelledby="tu-tier-title"
-        className="tu-root max-h-[90vh] w-full max-w-5xl overflow-auto rounded-2xl bg-white p-5 shadow-2xl outline-none sm:p-8"
+        className="tu-root flex max-h-full w-full max-w-5xl flex-col overflow-hidden rounded-t-2xl bg-white p-5 shadow-2xl outline-none sm:max-h-[90vh] sm:rounded-2xl sm:p-8 lg:block lg:overflow-auto"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="mb-6 flex items-start justify-between gap-4">
+        <div className="mb-4 flex shrink-0 items-start justify-between gap-4 lg:mb-6">
           <div>
-            <p className="text-xs font-bold uppercase tracking-[0.2em] text-slate-500">Select your location</p>
-            <h2 id="tu-tier-title" className="mt-1 font-display text-2xl font-bold text-navy sm:text-3xl">
+            <p className="hidden text-xs font-bold uppercase tracking-[0.2em] text-slate-500 sm:block">Select your location</p>
+            <h2 id="tu-tier-title" className="sm:mt-1 font-display text-xl font-bold text-navy sm:text-3xl">
               Choose Your {unit.width}' x {unit.depth}' {typeLabel(unit.category, unit.unitType)} Unit
             </h2>
-            <p className="mt-1 text-sm text-slate-500">Upgrade for closer access, flexible terms, and maximum convenience.</p>
+            <p className="mt-1 hidden text-sm text-slate-500 sm:block">Upgrade for closer access, flexible terms, and maximum convenience.</p>
           </div>
           <button type="button" onClick={onClose} aria-label="Close" className="grid size-10 shrink-0 cursor-pointer place-items-center rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200">
             <X size={20} />
           </button>
         </div>
 
+        {!desktop ? (
+          <TierAccordion unit={unit} mode={mode} allowWaitlist={allowWaitlist} onChoose={onChoose} />
+        ) : (
         <div className={`grid items-stretch gap-4 ${cols}`}>
           {unit.tiers.map((tier) => {
             const badge = availabilityBadge(tier.available)
@@ -140,6 +159,7 @@ export default function TierModal({ unit, mode, allowWaitlist = true, onClose, o
             )
           })}
         </div>
+        )}
       </div>
     </div>
   )
