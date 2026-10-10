@@ -30,15 +30,15 @@ export default function EstimateCard({ estimate: e, collapsed, onToggle }: Props
       </button>
 
       <div id={bodyId} hidden={collapsed} className="mt-2 border-t border-brand-100 pt-2">
-        {p && <p className="mb-0.5 text-[11px] font-medium uppercase tracking-wider text-slate-500">Rest of this month</p>}
+        {p && <p className="mb-0.5 text-[11px] font-medium uppercase tracking-wider text-slate-500">{e.prorated ? 'Rest of this month' : 'This month'}</p>}
         <div className={row}>
           <span className="text-slate-600">
             Rent, {e.periodLabel}
             <span className="block text-xs text-slate-500">
-              {e.daysLeft} of {e.daysInMonth} days
+              {e.prorated ? `${e.daysLeft} of ${e.daysInMonth} days` : e.dueDay ? `Then billed on the ${ordinal(e.dueDay)} of each month` : 'Full month'}
             </span>
           </span>
-          <span className="text-slate-900">{money(e.rent)}</span>
+          <Amount now={e.rent} full={e.prorated ? e.rentFull : undefined} />
         </div>
         {e.promoDiscount > 0 && (
           <div className={row}>
@@ -49,13 +49,15 @@ export default function EstimateCard({ estimate: e, collapsed, onToggle }: Props
             <span className="text-emerald-700">-{money(e.promoDiscount)}</span>
           </div>
         )}
-        <div className={row}>
-          <span className="text-slate-600">
-            Protection plan: ${e.protectionCoverage.toLocaleString('en-US')} coverage
-            <span className="block text-xs text-slate-500">Prorated, same days</span>
-          </span>
-          <span className="text-slate-900">{money(e.protection)}</span>
-        </div>
+        {e.protectionMonthly > 0 && (
+          <div className={row}>
+            <span className="text-slate-600">
+              Protection plan: ${e.protectionCoverage.toLocaleString('en-US')} coverage
+              <span className="block text-xs text-slate-500">{e.prorated ? 'Prorated, same days' : 'First month'}</span>
+            </span>
+            <Amount now={e.protection} full={e.prorated ? e.protectionMonthly : undefined} />
+          </div>
+        )}
 
         {p && (
           <div className="mt-2.5 rounded-lg border border-brand-100 bg-white px-3 py-2.5">
@@ -81,15 +83,19 @@ export default function EstimateCard({ estimate: e, collapsed, onToggle }: Props
                 <span className="text-emerald-700">-{money(p.promoDiscount)}</span>
               </div>
             )}
-            <div className={row}>
-              <span className="text-slate-600">
-                Protection plan: ${e.protectionCoverage.toLocaleString('en-US')} coverage
-                <span className="block text-xs text-slate-500">{p.monthName}, full month</span>
-              </span>
-              <span className="text-slate-900">{money(p.protection)}</span>
-            </div>
+            {p.protection > 0 && (
+              <div className={row}>
+                <span className="text-slate-600">
+                  Protection plan: ${e.protectionCoverage.toLocaleString('en-US')} coverage
+                  <span className="block text-xs text-slate-500">{p.monthName}, full month</span>
+                </span>
+                <span className="text-slate-900">{money(p.protection)}</span>
+              </div>
+            )}
             <p className="mt-1.5 text-xs leading-snug text-slate-500">
-              Because you are renting in the last {p.lastDays} days of the month, {p.monthName}'s rent and protection plan are due today.
+              {p.lastDays > 0
+                ? `Because you are renting in the last ${p.lastDays} days of the month, ${p.monthName}'s rent and protection plan are due today.`
+                : `${p.monthName}'s rent and protection plan are also due today.`}
             </p>
           </div>
         )}
@@ -101,6 +107,12 @@ export default function EstimateCard({ estimate: e, collapsed, onToggle }: Props
           </span>
           <span className="text-slate-900">{money(e.adminFee)}</span>
         </div>
+        {e.tax > 0 && (
+          <div className={row}>
+            <span className="text-slate-600">Tax</span>
+            <span className="text-slate-900">{money(e.tax)}</span>
+          </div>
+        )}
         <div className="mt-1 flex items-center justify-between gap-4 border-t border-brand-100 pt-2 text-base font-bold text-navy">
           <span>Estimated total</span>
           <span>{money(e.total)}</span>
@@ -121,6 +133,25 @@ export default function EstimateCard({ estimate: e, collapsed, onToggle }: Props
     </div>
   )
 }
+
+// A prorated amount, with the full monthly price struck through beside it.
+function Amount({ now, full }: { now: number; full?: number }) {
+  const struck = full !== undefined && full - now >= 0.005
+  return (
+    <span className="whitespace-nowrap text-slate-900">
+      {struck && (
+        <>
+          <span className="sr-only">Full price </span>
+          <s className="mr-1.5 text-[13px] text-slate-400">{money(full)}</s>
+          <span className="sr-only">, prorated </span>
+        </>
+      )}
+      {money(now)}
+    </span>
+  )
+}
+
+const ordinal = (n: number) => `${n}${['th', 'st', 'nd', 'rd'][n % 100 > 10 && n % 100 < 14 ? 0 : n % 10 < 4 ? n % 10 : 0]}`
 
 // Shown when a first-full-month promotion is not billed today: says where the discount lands.
 function NextMonthNote({ n, months }: { n: NextMonthPromo; months: number | null }) {

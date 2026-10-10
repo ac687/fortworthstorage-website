@@ -120,8 +120,13 @@ window.RENTAL_FLOW_SETTINGS = {
         5 = the last five days of the month. 0 = turn the rule off. Whole numbers 0 to 28.
         fullMonthPromoWords: a promotion whose name contains one of these phrases starts at the first FULL
         month, so the prorated move-in month is not discounted (the discount shows on next month's rent
-        instead). Case does not matter. Most promotions start at move-in and need nothing here. */
+        instead). Case does not matter. Most promotions start at move-in and need nothing here.
+        billingMode: 'first-of-month' (prorated move-in month, bills on the 1st) or 'anniversary' (full first
+        month, bills on the move-in day). The box normally takes this from Monument's cart preview, so this
+        only matters for the built-in backup calculation, used if the preview can't be reached.
+        All three rules above apply to that backup calculation. */
   estimate: {
+    billingMode: 'first-of-month',
     prepayLastDays: 5,
     fullMonthPromoWords: ['full month'],
   },

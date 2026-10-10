@@ -11,7 +11,7 @@ export type SiteSettings = {
   unitPhotos?: Record<string, string>
   tierAmenities?: Record<string, Record<string, string[]>>
   typeBullets?: Record<string, string[]>
-  estimate?: { prepayLastDays?: number; fullMonthPromoWords?: string[] }
+  estimate?: { billingMode?: string; prepayLastDays?: number; fullMonthPromoWords?: string[] }
   sizeInfo?: Record<string, { summary?: string; fits?: string[] }>
   tiers?: Record<string, { rank?: number; label?: string; copy?: string; highlight?: boolean }>
   checkout?: { brandUuid?: string; facilityUuid?: string; params?: string }
@@ -145,6 +145,7 @@ export function applySettings(raw: unknown = window.RENTAL_FLOW_SETTINGS): Recor
   if (est && typeof est.prepayLastDays === 'number' && Number.isInteger(est.prepayLastDays) && est.prepayLastDays >= 0 && est.prepayLastDays <= 28) {
     config.estimate.prepayLastDays = est.prepayLastDays
   }
+  if (est && (est.billingMode === 'first-of-month' || est.billingMode === 'anniversary')) config.estimate.billingMode = est.billingMode
   if (est && Array.isArray(est.fullMonthPromoWords)) {
     const words = est.fullMonthPromoWords.map((w) => str(w, 60)).filter((w): w is string => !!w)
     if (words.length) config.estimate.fullMonthPromoWords = words

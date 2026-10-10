@@ -2,7 +2,8 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { ArrowLeft, Phone } from 'lucide-react'
 import type { FacilityInfo, Tier, UnitOption } from '../lib/units'
 import { formatPrice, promoLabels, typeLabel } from '../lib/units'
-import { moveInEstimate } from '../lib/estimate'
+import { moveInEstimate, todayAtFacility, type Estimate } from '../lib/estimate'
+import { estimateFromCart, fetchCart } from '../lib/cart'
 import EstimateCard from './EstimateCard'
 import { config, monumentCheckoutUrl, type CheckoutMode } from '../config'
 
@@ -38,7 +39,66 @@ export default function CheckoutPanel({ unit, tier, mode, onBack, scrollToTop, f
     setDebugLog((l) => [...l.slice(-199), `${t}s  ${line}`])
   }
   // Only a same-day rental has something due today. Reserve and waitlist don't.
-  const estimate = useMemo(() => (mode === 'tenant' ? moveInEstimate(tier) : null), [mode, tier])
+  // The built-in calculation shows right away; Monument's own cart preview replaces it when it
+  // arrives (and is what the page shows from then on). If the preview fails, the calculation stays.
+  const calcEstimate = useMemo(() => (mode === 'tenant' ? moveInEstimate(tier) : null), [mode, tier])
+  const [cartEstimate, setCartEstimate] = useState<Estimate | null>(null)
+  useEffect(() => {
+    setCartEstimate(null)
+    if (mode !== 'tenant' || !config.estimate.cartPath) return
+    let live = true
+    fetchCart(tier)
+      .then((items) => {
+        if (!live) return
+        const est = estimateFromCart(items, tier)
+        // The cart must be for today at the facility. If Monument used another day, don't show it.
+        const t = todayAtFacility(new Date())
+        const today = `${t.year}-${String(t.month).padStart(2, '0')}-${String(t.day).padStart(2, '0')}`
+        const cartDate = (items.find((i) => i.category === 'RENT')?.dateDesiredMoveIn ?? '').slice(0, 10)
+        if (debug) addDebug(`move-in date: sent ${today} | cart used ${cartDate || '?'}${cartDate === today ? '' : '  <-- DIFFERENT, cart ignored'}`)
+        if (est && cartDate !== today) return
+        if (!est) {
+          if (debug) addDebug('cart preview: no usable rent line, using the built-in calculation')
+          return
+        }
+        setCartEstimate(est)
+        if (debug) {
+          const calc = moveInEstimate(tier)
+          const same = Math.round(est.total * 100) === Math.round(calc.total * 100)
+          addDebug(`cart preview: total ${est.total.toFixed(2)} | built-in ${calc.total.toFixed(2)} | ${same ? 'MATCH' : 'DIFFERENT'}`)
+          // Line by line, cart vs built-in, so any difference is easy to find.
+          const c2 = (n: number) => n.toFixed(2).padStart(9)
+          const lines: [string, number, number][] = [
+            ['rent (today)', est.rent, calc.rent],
+            ['promo (today)', -est.promoDiscount, -calc.promoDiscount],
+            ['protection (today)', est.protection, calc.protection],
+            ['admin fee', est.adminFee, calc.adminFee],
+            ['tax', est.tax, calc.tax],
+            ['prepaid rent', est.prepay?.rent ?? 0, calc.prepay?.rent ?? 0],
+            ['prepaid promo', -(est.prepay?.promoDiscount ?? 0), -(calc.prepay?.promoDiscount ?? 0)],
+            ['prepaid protection', est.prepay?.protection ?? 0, calc.prepay?.protection ?? 0],
+            ['TOTAL', est.total, calc.total],
+          ]
+          addDebug(`line items:  ${'cart'.padStart(9)} ${'built-in'.padStart(9)} ${'diff'.padStart(9)}`)
+          for (const [name, a, b] of lines) {
+            const diff = Math.round((a - b) * 100) / 100
+            addDebug(`${name.padEnd(19)}${c2(a)} ${c2(b)} ${diff === 0 ? '        -' : c2(diff)}${diff === 0 ? '' : '  <-- differs'}`)
+          }
+          addDebug(`days: cart ${est.prorated ? `${est.daysLeft}/${est.daysInMonth}` : 'not prorated'} | built-in ${calc.prorated ? `${calc.daysLeft}/${calc.daysInMonth}` : 'not prorated'} | billing: cart ${est.dueDay ? 'anniversary' : 'first-of-month'}, built-in ${config.estimate.billingMode}`)
+          addDebug(`unit: web ${tier.webRate} | street ${tier.streetRate} | promo price ${tier.promoRate ?? '-'} (discount ${tier.promoRate !== null ? (tier.webRate - tier.promoRate).toFixed(2) : '-'}/mo) | promo months ${tier.promoMonths ?? '?'} | first-full-month ${tier.promoFirstFullMonth} | promo "${tier.promoName ?? '-'}"`)
+          addDebug(`cart: full-month rent ${items.find((i) => i.category === 'RENT')?.preProrationAmountInPennies ?? '?'}c | protection/mo ${items.find((i) => i.category === 'COVERAGE')?.fixedFeeAmount ?? '?'}c (built-in assumes ${config.estimate.protectionMonthly * 100}c) | promo ${items.find((i) => i.promotion)?.promotion?.discountAmountInPennies ?? 0}c ${items.find((i) => i.promotion)?.promotion?.discountType ?? ''}`)
+          addDebug(`cart preview: ${items.map((i) => `${i.billingPeriod}:${i.category}:${i.invoiceGenerationType ?? '-'}:${i.amountInPennies}${i.promotion ? `-${i.promotion.discountAmountInPennies}` : ''}+tax${i.taxAmountInPennies}`).join('  ')}`)
+        }
+      })
+      .catch((err) => {
+        if (live && debug) addDebug(`cart preview failed (${err instanceof Error ? err.message : String(err)}), using the built-in calculation`)
+      })
+    return () => {
+      live = false
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mode, tier.unitGroupUuid, tier.promotionUuid])
+  const estimate = cartEstimate ?? calcEstimate
   const src = monumentCheckoutUrl(tier.unitGroupUuid, mode)
   const sizeInfo = config.sizeInfo[`${unit.width}x${unit.depth}`]
 

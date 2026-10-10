@@ -50,6 +50,7 @@ export type Tier = {
   webRate: number // dollars / month
   streetRate: number // dollars / month
   promoName: string | null
+  promotionUuid: string | null // the promotion the cart preview applies
   promoRate: number | null // dollars / month while the promo applies
   promoMonths: number | null // how many months it applies, when the name says so
   promoFirstFullMonth: boolean // true when it starts at the first full month, so the prorated move-in month is not discounted
@@ -293,6 +294,7 @@ function toTier(g: ApiUnitGroup): Tier {
     webRate: web,
     streetRate: street,
     promoName: hasPromo ? promo.name : null,
+    promotionUuid: hasPromo ? (g.bestAutoAppliedPromotion?.promotionUuid ?? null) : null,
     promoMonths: hasPromo ? promo.months : null,
     promoFirstFullMonth: hasPromo && promo.startsFirstFull,
     promoRequiresAutopay: hasPromo && promo.requiresAutopay,
@@ -342,7 +344,7 @@ export function groupUnitOptions(groups: ApiUnitGroup[]): UnitOption[] {
 
 // A sold-out unit shows its regular price only: no promotion name, discounted price or "then" line.
 export function withoutPromo(tier: Tier): Tier {
-  return { ...tier, promoName: null, promoMonths: null, promoFirstFullMonth: false, promoRequiresAutopay: false, promoRate: null }
+  return { ...tier, promoName: null, promotionUuid: null, promoMonths: null, promoFirstFullMonth: false, promoRequiresAutopay: false, promoRate: null }
 }
 
 export function formatPrice(n: number) {

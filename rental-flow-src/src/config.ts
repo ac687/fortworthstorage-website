@@ -74,6 +74,11 @@ export const config = {
     protectionMonthly: 12, // default protection plan, dollars / month
     protectionCoverage: 2000, // coverage amount shown in the label, dollars
     adminFee: 25, // one time, dollars
+    // Only used for the built-in calculation (the fallback when Monument's cart preview can't be reached).
+    // 'first-of-month': prorated move-in month, bills on the 1st. 'anniversary': full first month, bills on the move-in day.
+    // The cart preview itself decides this from what Monument returns. Can also be set in /js/rental-flow-settings.js.
+    billingMode: 'first-of-month' as 'first-of-month' | 'anniversary',
+    cartPath: '/api/cart-preview', // set to '' to skip the cart preview and always use the built-in calculation
     timeZone: 'America/Chicago', // facility time zone, decides what "today" is
     // A same-day rental in the last N days of the month also prepays next month's rent and
     // protection plan. 0 turns the rule off. Can also be set in /js/rental-flow-settings.js.
