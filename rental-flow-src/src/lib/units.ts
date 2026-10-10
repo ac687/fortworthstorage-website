@@ -15,7 +15,28 @@ export type ApiUnitGroup = {
   currentStreetRate?: number | null
   currentWebRate?: number | null
   amenities?: { key: string; present: boolean }[] | null
-  bestAutoAppliedPromotion?: { promotionName?: string | null; highestDiscountAmount?: number | null } | null
+  bestAutoAppliedPromotion?: ApiPromotion | null
+}
+
+// The rules behind a promotion, from Monument's promotions/get_by_uuids (added by /api/units).
+// Missing when that call failed; the page then reads the promotion's name instead.
+export type ApiPromoDetails = {
+  tenantType?: string | null // "Personal" | "Business" | "All"
+  isAutoPayRequired?: boolean | null
+  isActive?: boolean | null
+  discountType?: string | null // "PERCENTAGE" | "FIXED_AMOUNT"
+  discountAmountType?: string | null // "OFF_RENT"
+  discountPercentage?: number | null // 50 means 50%
+  fixedDiscountAmount?: number | null // pennies
+  durationInMonths?: number | null // invoices it applies to; 0 means all of them
+  monthStarts?: number | null // 0 = the move-in invoice, 1 = the first full month after move-in
+}
+
+export type ApiPromotion = {
+  promotionUuid?: string | null
+  promotionName?: string | null
+  highestDiscountAmount?: number | null // pennies, for this unit group
+  details?: ApiPromoDetails | null
 }
 
 export type Tier = {
@@ -32,6 +53,7 @@ export type Tier = {
   promoRate: number | null // dollars / month while the promo applies
   promoMonths: number | null // how many months it applies, when the name says so
   promoFirstFullMonth: boolean // true when it starts at the first full month, so the prorated move-in month is not discounted
+  promoRequiresAutopay: boolean // the promotion only applies when the tenant signs up for autopay
   features: string[]
 }
 
@@ -214,14 +236,52 @@ export function promoLabels(tier: Tier): { promo: string; after: string; sentenc
   }
 }
 
+const isNum = (v: unknown): v is number => typeof v === 'number' && Number.isFinite(v)
+
+// What a group's promotion means, preferring Monument's own rules (promo.details) and reading the
+// promotion's name only for what the rules don't give. Each group is read on its own, so groups
+// can have different promotions.
+export function readPromo(promo: ApiPromotion | null | undefined, web: number) {
+  const name = promo?.promotionName?.trim() || ''
+  const d = promo?.details ?? null
+  // Not shown: a promotion that is switched off, or one only for business accounts (the site does not ask).
+  const blocked = !!d && (d.isActive === false || (d.tenantType ?? '').toLowerCase() === 'business')
+
+  // Discount for ONE payment, in dollars. A percentage is taken off the web rate, a fixed amount comes in pennies.
+  // This avoids relying on highestDiscountAmount, which may be the total across several payments.
+  let discount: number | null = null
+  if (d && (d.discountAmountType ?? 'OFF_RENT').toUpperCase() === 'OFF_RENT') {
+    if (d.discountType === 'PERCENTAGE' && isNum(d.discountPercentage) && d.discountPercentage > 0) {
+      discount = Math.round(web * Math.min(100, d.discountPercentage)) / 100
+    } else if (d.discountType === 'FIXED_AMOUNT' && isNum(d.fixedDiscountAmount) && d.fixedDiscountAmount > 0) {
+      discount = d.fixedDiscountAmount / 100
+    }
+  }
+  if (discount === null) discount = (promo?.highestDiscountAmount ?? 0) / 100
+  discount = Math.min(discount, web)
+
+  // How many payments: durationInMonths (0 = all of them, which has no count to show), else the name.
+  const months = d && isNum(d.durationInMonths) ? (d.durationInMonths > 0 ? d.durationInMonths : null) : name ? promoMonthsFromName(name) : null
+  // When it starts: monthStarts 0 = move-in invoice, 1 = first full month. Anything else falls back to the name.
+  const startsFirstFull = d && isNum(d.monthStarts) && (d.monthStarts === 0 || d.monthStarts === 1) ? d.monthStarts === 1 : name ? startsAtFirstFullMonth(name) : false
+
+  return {
+    show: !!name && !blocked && discount > 0,
+    name,
+    discount,
+    months,
+    startsFirstFull,
+    requiresAutopay: !!d?.isAutoPayRequired,
+  }
+}
+
 function toTier(g: ApiUnitGroup): Tier {
   const name = (g.description || 'Standard').trim()
   const meta = config.tiers[name] ?? { rank: 9, label: '', copy: '' }
   const web = (g.currentWebRate ?? g.currentStreetRate ?? 0) / 100
   const street = (g.currentStreetRate ?? g.currentWebRate ?? 0) / 100
-  const promo = g.bestAutoAppliedPromotion
-  const discount = (promo?.highestDiscountAmount ?? 0) / 100
-  const hasPromo = !!promo?.promotionName && discount > 0
+  const promo = readPromo(g.bestAutoAppliedPromotion, web)
+  const hasPromo = promo.show
   return {
     name,
     rank: meta.rank,
@@ -232,10 +292,11 @@ function toTier(g: ApiUnitGroup): Tier {
     available: Math.max(0, g.availableUnitCount ?? 0),
     webRate: web,
     streetRate: street,
-    promoName: hasPromo ? promo!.promotionName! : null,
-    promoMonths: hasPromo ? promoMonthsFromName(promo!.promotionName!) : null,
-    promoFirstFullMonth: hasPromo && startsAtFirstFullMonth(promo!.promotionName!),
-    promoRate: hasPromo ? Math.max(0, Math.round((web - discount) * 100) / 100) : null,
+    promoName: hasPromo ? promo.name : null,
+    promoMonths: hasPromo ? promo.months : null,
+    promoFirstFullMonth: hasPromo && promo.startsFirstFull,
+    promoRequiresAutopay: hasPromo && promo.requiresAutopay,
+    promoRate: hasPromo ? Math.max(0, Math.round((web - promo.discount) * 100) / 100) : null,
     features: hardCodedAmenities(g, name) ?? (g.amenities ?? []).filter((a) => a.present).map((a) => a.key),
   }
 }
@@ -277,6 +338,11 @@ export function groupUnitOptions(groups: ApiUnitGroup[]): UnitOption[] {
     o.fromTier = [...(pool.length ? pool : o.tiers)].sort((a, b) => a.webRate - b.webRate)[0]
   }
   return options.sort((a, b) => a.sqft - b.sqft || a.category.localeCompare(b.category))
+}
+
+// A sold-out unit shows its regular price only: no promotion name, discounted price or "then" line.
+export function withoutPromo(tier: Tier): Tier {
+  return { ...tier, promoName: null, promoMonths: null, promoFirstFullMonth: false, promoRequiresAutopay: false, promoRate: null }
 }
 
 export function formatPrice(n: number) {

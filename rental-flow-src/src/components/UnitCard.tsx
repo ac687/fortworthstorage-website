@@ -1,6 +1,6 @@
 import { Car, Check, Warehouse } from 'lucide-react'
 import type { UnitOption } from '../lib/units'
-import { accessLabel, availabilityBadge, typeLabel } from '../lib/units'
+import { accessLabel, availabilityBadge, typeLabel, withoutPromo } from '../lib/units'
 import Price from './Price'
 
 type Props = {
@@ -46,7 +46,9 @@ export default function UnitCard({ unit, onSelect, allowReservations = true, all
           {/* Same size on every card (with or without a promotion) so the list lines up. */}
           <div className="flex h-[176px] w-full flex-col items-center justify-center rounded-xl border border-brand-100 bg-brand-50/60 px-4 md:mx-auto md:max-w-[380px] lg:mx-0 lg:max-w-none lg:w-[300px]">
             {multi && <p className="mb-1 text-center text-[11px] font-semibold uppercase tracking-wide text-slate-500">Starting at</p>}
-            <Price tier={unit.fromTier} compact />
+            {/* No units free: the regular price only, never a promotion nobody can use. */}
+            <Price tier={soldOut ? withoutPromo(unit.fromTier) : unit.fromTier} compact />
+            {soldOut && unit.fromTier.promoRate !== null && <p className="mt-1 text-xs text-slate-500">Regular rate</p>}
           </div>
         </div>
 

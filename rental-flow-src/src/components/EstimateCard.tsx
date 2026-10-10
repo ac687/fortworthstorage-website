@@ -107,6 +107,7 @@ export default function EstimateCard({ estimate: e, collapsed, onToggle }: Props
         </div>
         {p && <p className="mt-0.5 text-right text-xs text-slate-500">Includes {money(p.rent - p.promoDiscount + p.protection)} prepaid for {p.monthName}</p>}
         {e.nextMonthPromo && <NextMonthNote n={e.nextMonthPromo} months={e.promoMonths} />}
+        {e.promoRequiresAutopay && <p className="mt-2 text-xs font-semibold text-emerald-800">The promotion requires autopay.</p>}
         <p className="mt-2 text-xs text-slate-500">Estimate only. Taxes and final promotion terms are confirmed on the next step.</p>
       </div>
     </div>

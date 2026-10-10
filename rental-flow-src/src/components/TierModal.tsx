@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Check, X } from 'lucide-react'
 import type { Tier, UnitOption } from '../lib/units'
-import { availabilityBadge, typeLabel } from '../lib/units'
+import { availabilityBadge, typeLabel, withoutPromo } from '../lib/units'
 import type { CheckoutMode } from '../config'
 import Price, { needsSmallPrice } from './Price'
 
@@ -106,7 +106,7 @@ export default function TierModal({ unit, mode, allowWaitlist = true, onClose, o
                   </div>
                 ) : (
                   <div className="my-5">
-                    <Price tier={tier} small={anySmall} stack={stackRow} onFit={(fits) => reportFit(tier.name, fits)} />
+                    <Price tier={soldOut ? withoutPromo(tier) : tier} small={anySmall} stack={stackRow} onFit={(fits) => reportFit(tier.name, fits)} />
                   </div>
                 )}
                 <ul className={`flex flex-1 flex-col gap-3 text-sm ${unavailable ? 'text-slate-500' : 'text-slate-800'}`}>

@@ -41,6 +41,7 @@ export type Estimate = {
   protectionCoverage: number // dollars of coverage, for the label
   adminFee: number
   promoFirstFullMonth: boolean // the promotion starts at the first full month, not at move-in
+  promoRequiresAutopay: boolean // the discount only applies with autopay
   nextMonthPromo: NextMonthPromo | null // preview of the discounted first full month, when it is not billed today
   prepay: Prepay | null // next month's charges, only in the last days of the month
   total: number
@@ -105,6 +106,7 @@ export function moveInEstimate(tier: Tier, now = new Date()): Estimate {
     promoDiscount: discountCents / 100,
     promoMonths: tier.promoMonths,
     promoFirstFullMonth: firstFull,
+    promoRequiresAutopay: tier.promoRequiresAutopay && tier.promoRate !== null,
     nextMonthPromo:
       firstFull && !prepaying
         ? {

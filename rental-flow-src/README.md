@@ -50,3 +50,15 @@ A promotion named like "50% off first full month" or "First full month free" doe
 The cart estimate shows the discount on next month's rent (as a note, or on the prepaid line in the last days of the month).
 The phrases that trigger this are `estimate.fullMonthPromoWords` in `/js/rental-flow-settings.js` (default `['full month']`).
 Unit cards say "First full month" / "Regular rate", and a $0 promo price shows as "Free".
+
+## Promotion rules from Monument
+`/api/units` returns each unit group with its own best auto-applied promotion, plus that promotion's rules in
+`bestAutoAppliedPromotion.details` (one batched `promotions/get_by_uuids` call, Integration API, cached 3 minutes, like the rest).
+The page uses the rules first and the promotion's name only as a fallback:
+- discount: `discountPercentage` taken off the web rate (or `fixedDiscountAmount`, in pennies), per payment
+- how many payments: `durationInMonths` (0 = every invoice, no count shown)
+- when it starts: `monthStarts` 0 = the prorated move-in invoice, 1 = the first full month
+- `isAutoPayRequired` adds a "requires autopay" line to the estimate
+- hidden: promotions that are inactive or `tenantType` Business only
+If the details call fails, the response header `x-promo-details` says why and the name-based behavior applies.
+Needs `MONUMENT_INTEGRATION_API_KEY` in Cloudflare (falls back to `MONUMENT_API_KEY`).
