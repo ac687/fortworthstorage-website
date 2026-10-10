@@ -1,6 +1,6 @@
 import { useId } from 'react'
 import { ChevronDown } from 'lucide-react'
-import { money, type Estimate, type NextMonthPromo } from '../lib/estimate'
+import { money, type Estimate, type NextMonthPromo, type Upcoming } from '../lib/estimate'
 
 type Props = {
   estimate: Estimate
@@ -106,9 +106,17 @@ export default function EstimateCard({ estimate: e, collapsed, onToggle }: Props
           <span>{money(e.total)}</span>
         </div>
         {p && <p className="mt-0.5 text-right text-xs text-slate-500">Includes {money(p.rent - p.promoDiscount + p.protection)} prepaid for {p.monthName}</p>}
+        {e.upcoming ? (
+          <ComingUp rows={e.upcoming} rowClass={row} />
+        ) : (
+          <div className="mt-3 border-t border-dashed border-slate-300 pt-2">
+            <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Coming up</p>
+            <p className="mt-1 text-sm text-slate-600">Your promotion may change your later payments. Exact amounts are confirmed in your cart.</p>
+          </div>
+        )}
         {e.nextMonthPromo && <NextMonthNote n={e.nextMonthPromo} months={e.promoMonths} />}
         {e.promoRequiresAutopay && <p className="mt-2 text-xs font-semibold text-emerald-800">The promotion requires autopay.</p>}
-        <p className="mt-2 text-xs text-slate-500">Estimate only. Taxes and final promotion terms are confirmed on the next step.</p>
+        <p className="mt-2 text-xs text-slate-500">Estimates only. Taxes and final promotion terms are confirmed on the next step.</p>
       </div>
     </div>
   )
@@ -132,6 +140,24 @@ function NextMonthNote({ n, months }: { n: NextMonthPromo; months: number | null
         )}
         {months !== null && months >= 2 && ` The discount covers your first ${months} full months.`}
       </p>
+    </div>
+  )
+}
+
+// The payments after today, with the math behind each amount.
+function ComingUp({ rows, rowClass }: { rows: Upcoming[]; rowClass: string }) {
+  return (
+    <div className="mt-3 border-t border-dashed border-slate-300 pt-2">
+      <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Coming up</p>
+      {rows.map((u) => (
+        <div key={u.label} className={rowClass}>
+          <span className="text-slate-600">
+            {u.label}
+            <span className="block text-xs text-slate-500">{u.detail}</span>
+          </span>
+          <span className="text-slate-900">{money(u.amount)}</span>
+        </div>
+      ))}
     </div>
   )
 }

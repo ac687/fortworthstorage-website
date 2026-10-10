@@ -1,5 +1,6 @@
 import { config } from '../config'
 import type { Tier } from './units'
+import { formatPrice } from './units'
 
 // Move-in cost estimate for a same-day rental: the rest of this month's rent
 // (today counts as a full day), the protection plan for the same days, and the
@@ -29,6 +30,9 @@ export type NextMonthPromo = {
   rentAfterPromo: number // dollars, what that month costs with the promotion
 }
 
+// One upcoming payment after today: "Nov 1", its amount, and the math behind it.
+export type Upcoming = { label: string; amount: number; detail: string }
+
 export type Estimate = {
   periodLabel: string // "Oct 5 to Oct 31"
   daysLeft: number
@@ -44,6 +48,9 @@ export type Estimate = {
   promoRequiresAutopay: boolean // the discount only applies with autopay
   nextMonthPromo: NextMonthPromo | null // preview of the discounted first full month, when it is not billed today
   prepay: Prepay | null // next month's charges, only in the last days of the month
+  // Payments after today ("Coming up"). null = a promotion applies but its length isn't known,
+  // so no amounts are promised. When next month is prepaid today, the list starts the month after.
+  upcoming: Upcoming[] | null
   total: number
 }
 
@@ -95,6 +102,32 @@ export function moveInEstimate(tier: Tier, now = new Date()): Estimate {
 
   const totalCents = rentCents - discountCents + protectionCents + adminCents + prepayRentCents - prepayDiscountCents + prepayProtectionCents
 
+  // Coming up: the payments after today, following the promotion's length.
+  // A promotion that starts at move-in counts today's prorated rent as payment 1, so the next
+  // month is payment 2. A first-full-month promotion leaves today alone, so the next month is payment 1.
+  // Months already billed today (the prepaid month) are skipped.
+  const hasPromo = tier.promoRate !== null && monthDiscountCents > 0
+  const monthAhead = (ahead: number) => `${monthShort(year, month + ahead)} 1`
+  const upcomingRow = (ahead: number, rent: number, tail = ''): Upcoming => ({
+    label: monthAhead(ahead),
+    amount: Math.round((rent + config.estimate.protectionMonthly) * 100) / 100,
+    detail: `${formatPrice(rent)} rent + ${formatPrice(config.estimate.protectionMonthly)} protection${tail}`,
+  })
+  const regularRow = (ahead: number) => upcomingRow(ahead, tier.webRate, ', every month after')
+  const firstUpcoming = prepaying ? 2 : 1
+  let upcoming: Upcoming[] | null
+  if (!hasPromo) {
+    upcoming = [regularRow(firstUpcoming)]
+  } else if (tier.promoMonths === null) {
+    upcoming = null
+  } else {
+    // Last month ahead that still gets the promotion's rent.
+    const lastPromoAhead = firstFull ? tier.promoMonths : tier.promoMonths - 1
+    upcoming = []
+    for (let a = firstUpcoming; a <= lastPromoAhead; a++) upcoming.push(upcomingRow(a, tier.promoRate!))
+    upcoming.push(regularRow(Math.max(firstUpcoming, lastPromoAhead + 1)))
+  }
+
   const mon = monthShort(year, month)
   const nextMon = monthShort(nextYear, nextMonth)
   return {
@@ -132,6 +165,7 @@ export function moveInEstimate(tier: Tier, now = new Date()): Estimate {
           promoFirstFullMonth: firstFull,
         }
       : null,
+    upcoming,
     total: totalCents / 100,
   }
 }
