@@ -68,8 +68,8 @@ window.RENTAL_FLOW_SETTINGS = {
 
   /* 3. FACILITY PHOTOS (path on this site like "/images/x.webp", or a full https:// link) */
   photos: [
-    { src: '/images/fort-worth-storage-rear-row-1920x1080.webp', alt: 'Rear row of drive-up storage units at Fort Worth Storage' },
-    { src: '/images/fort-worth-storage-front-row-1200x900.webp', alt: 'Front row of storage units at Fort Worth Storage' },
+    { src: '/images/carousel-fort-worth-rear-row-900.webp', alt: 'Rear row of drive-up storage units at Fort Worth Storage' },
+    { src: '/images/carousel-fort-worth-front-row-900.webp', alt: 'Front row of storage units at Fort Worth Storage' },
     { src: '/images/fort-worth-storage-google-square-600x600.webp', alt: 'Fort Worth Storage in Fort Worth, TX' },
   ],
 

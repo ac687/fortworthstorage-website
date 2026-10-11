@@ -27,7 +27,14 @@ export default function FacilityHeader({ info = {}, infoReady = true, phoneReady
   }, [])
   const gateOpen = isOpenNow(now, f.timeZone, f.gateHours)
   const [i, setI] = useState(0)
-  const go = (d: number) => setI((n) => (n + d + f.photos.length) % f.photos.length)
+  // Photos after the first wait until the first has loaded, so they don't compete with it
+  // on slow connections. A failed first photo, or a tap on the arrows, releases them too.
+  const [restReady, setRestReady] = useState(false)
+  const go = (d: number) => {
+    setRestReady(true)
+    goTo(d)
+  }
+  const goTo = (d: number) => setI((n) => (n + d + f.photos.length) % f.photos.length)
   // Swipe left/right on touch screens to change photo. Vertical scrolling still works.
   const touchStart = useRef<{ x: number; y: number } | null>(null)
   const onTouchStart = (e: React.TouchEvent) => {
@@ -51,9 +58,11 @@ export default function FacilityHeader({ info = {}, infoReady = true, phoneReady
           {f.photos.map((p, n) => (
             <img
               key={p.src}
-              src={p.src}
+              src={n === 0 || restReady ? p.src : undefined}
               alt={p.alt}
               loading={n === 0 ? 'eager' : 'lazy'}
+              onLoad={n === 0 ? () => setRestReady(true) : undefined}
+              onError={n === 0 ? () => setRestReady(true) : undefined}
               className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-500 ${n === i ? 'opacity-100' : 'opacity-0'}`}
             />
           ))}
