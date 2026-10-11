@@ -48,15 +48,15 @@ window.RENTAL_FLOW_SETTINGS = {
               and unit that uses that bullet. Use [] to turn it off. */
   tierAmenities: {
     'Drive-Up': {
-      Essential: ['Furthest from Entrance', '3-Month Minimum Commitment', '24/7 Online Account Management'],
-      Preferred: ['Easy Access', 'Month-to-month contract', 'More Convenient', '24/7 Online Account Management'],
-      Premium: ['24-Hour Access', 'Month-to-month contract', '24/7 Online Account Management', 'Best Location/Easiest Access'],
+      Good: ['**3-Month Minimum Commitment**', 'Standard Ground-Level Access', 'Access Hours: 6:00 AM – 10:00 PM', '24/7 Online Account Management'],
+      Better: ['**Flexible Month-to-Month Terms**', 'Quick-Access Row Placement', 'Access Hours: 6:00 AM – 10:00 PM', '24/7 Online Account Management'],
+      Best: ['**Flexible Month-to-Month Terms**', 'Premium Row Placement', 'Includes 24/7 Gate Access (A $10/mo value included free)', '24/7 Online Account Management'],
     },
     // Any other unit type uses these.
     default: {
-      Essential: ['Furthest from Entrance', '3-Month Minimum Commitment', '24/7 Online Account Management'],
-      Preferred: ['Easy Access', 'Month-to-month contract', 'More Convenient', '24/7 Online Account Management'],
-      Premium: ['24-Hour Access', 'Month-to-month contract', '24/7 Online Account Management', 'Best Location/Easiest Access'],
+      Good: ['**3-Month Minimum Commitment**', 'Standard Ground-Level Access', 'Access Hours: 6:00 AM – 10:00 PM', '24/7 Online Account Management'],
+      Better: ['**Flexible Month-to-Month Terms**', 'Quick-Access Row Placement', 'Access Hours: 6:00 AM – 10:00 PM', '24/7 Online Account Management'],
+      Best: ['**Flexible Month-to-Month Terms**', 'Premium Row Placement', 'Includes 24/7 Gate Access (A $10/mo value included free)', '24/7 Online Account Management'],
     },
   },
 
