@@ -54,7 +54,7 @@ function PriceBadge({ unit, reserve }: { unit: UnitOption; reserve: boolean }) {
       </p>
       <p className="mt-1.5 text-xs text-slate-500">
         Then {formatPrice(best.webRate)}/mo
-        {best.streetRate > best.webRate && <span className="ml-1 text-slate-400 line-through">{formatPrice(best.streetRate)}</span>}
+        {best.streetRate > best.webRate && <span className="ml-1 text-slate-500 line-through">{formatPrice(best.streetRate)}</span>}
       </p>
     </div>
   )

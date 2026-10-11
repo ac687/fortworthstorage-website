@@ -140,7 +140,7 @@
   // The big price block on the size guide: pill on top, discounted price with the old one struck through, terms below.
   function renderPanel(el, pr) {
     el.textContent = money(pr.price) + '/mo '
-    el.appendChild(mk('span', 'font-size:0.5em;font-weight:400;color:#8a97ad;text-decoration:line-through', money(pr.regular)))
+    el.appendChild(mk('span', 'font-size:0.5em;font-weight:400;color:#64748b;text-decoration:line-through', money(pr.regular)))
     var box = el.parentNode
     box.insertBefore(mk('div', 'margin-bottom:6px', null), box.firstChild).appendChild(pill(pr))
     el.parentNode.insertBefore(terms(pr, 'margin:2px 0 4px'), el.nextSibling)
@@ -149,7 +149,7 @@
   // (the price column is narrow and right-aligned), the price and terms go in the price column.
   function renderCard(el, pr) {
     el.textContent = money(pr.price) + '/mo '
-    el.appendChild(mk('span', 'font-size:0.6em;font-weight:400;color:#8a97ad;text-decoration:line-through', money(pr.regular)))
+    el.appendChild(mk('span', 'font-size:0.6em;font-weight:400;color:#64748b;text-decoration:line-through', money(pr.regular)))
     var line = el.closest ? el.closest('.price-line') : null
     var row = mk('div', 'margin-bottom:8px;max-width:100%')
     row.appendChild(pill(pr))
@@ -161,7 +161,7 @@
   function renderCC(el, pr) {
     var holder = el.parentNode // the price block; the <strong> sits inside it
     el.textContent = money(pr.price) + '/mo '
-    el.appendChild(mk('span', 'font-size:0.6em;font-weight:400;color:#8a97ad;text-decoration:line-through', money(pr.regular)))
+    el.appendChild(mk('span', 'font-size:0.6em;font-weight:400;color:#64748b;text-decoration:line-through', money(pr.regular)))
     var card = holder.closest ? holder.closest('.div-block-33') : null
     var row = mk('div', 'min-height:28px;display:flex;align-items:center;margin-bottom:6px')
     row.setAttribute('data-promo-row', '')
@@ -193,7 +193,7 @@
     var wrap = mk('div', 'display:flex;flex-direction:column;align-items:center;gap:3px;max-width:100%;min-width:0;text-align:center')
     wrap.appendChild(pill(pr))
     var line = mk('div', 'line-height:1.2', money(pr.price) + '/mo ')
-    line.appendChild(mk('span', 'font-size:13px;font-weight:400;color:#8a97ad;text-decoration:line-through', money(pr.regular)))
+    line.appendChild(mk('span', 'font-size:13px;font-weight:400;color:#64748b;text-decoration:line-through', money(pr.regular)))
     wrap.appendChild(line)
     wrap.appendChild(terms(pr, 'font-size:11px'))
     el.appendChild(wrap)

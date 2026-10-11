@@ -142,7 +142,7 @@ function Amount({ now, full }: { now: number; full?: number }) {
       {struck && (
         <>
           <span className="sr-only">Full price </span>
-          <s className="mr-1.5 text-[13px] text-slate-400">{money(full)}</s>
+          <s className="mr-1.5 text-[13px] text-slate-500">{money(full)}</s>
           <span className="sr-only">, prorated </span>
         </>
       )}

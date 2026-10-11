@@ -99,7 +99,7 @@ export default function TierAccordion({ unit, mode, allowWaitlist, onChoose }: P
                     {promo ? (
                       <span className="text-xs text-slate-500">then {formatPrice(tier.webRate)}/mo</span>
                     ) : strike ? (
-                      <span className="text-xs text-slate-400 line-through">{formatPrice(tier.streetRate)}/mo</span>
+                      <span className="text-xs text-slate-500 line-through">{formatPrice(tier.streetRate)}/mo</span>
                     ) : (
                       <span className="text-xs text-slate-500">per month</span>
                     )}
