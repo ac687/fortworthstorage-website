@@ -98,9 +98,9 @@ window.RENTAL_FLOW_SETTINGS = {
   /* 5. TIER WORDING. The name on the left must match the unit group name in
         Monument exactly. rank = order (0 is cheapest/first). highlight = emphasized card. */
   tiers: {
-    Essential: { rank: 0, label: 'Best value', copy: 'The most affordable way to store.' },
-    Preferred: { rank: 1, label: 'Most popular', copy: 'Added convenience with flexible terms.', highlight: true },
-    Premium: { rank: 2, label: 'Premium pick', copy: 'Premium placement and convenience.' },
+    Good: { rank: 0, label: 'Best value', copy: 'The most affordable way to store.' },
+    Better: { rank: 1, label: 'Most popular', copy: 'Added convenience with flexible terms.', highlight: true },
+    Best: { rank: 2, label: 'Premium pick', copy: 'Premium placement and convenience.' },
   },
 
   /* 6. MONUMENT CHECKOUT BRANDING (the page customers land on after clicking Rent).
