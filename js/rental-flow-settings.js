@@ -100,7 +100,7 @@ window.RENTAL_FLOW_SETTINGS = {
   tiers: {
     Essential: { rank: 0, label: 'Best value', copy: 'The most affordable way to store.' },
     Preferred: { rank: 1, label: 'Most popular', copy: 'Added convenience with flexible terms.', highlight: true },
-    Premium: { rank: 2, label: 'Premium pick', copy: 'Premium placement for maximum convenience.' },
+    Premium: { rank: 2, label: 'Premium pick', copy: 'Premium placement and convenience.' },
   },
 
   /* 6. MONUMENT CHECKOUT BRANDING (the page customers land on after clicking Rent).
