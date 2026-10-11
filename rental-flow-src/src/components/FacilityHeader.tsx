@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { ChevronLeft, ChevronRight, Lock, LockOpen, Phone, Star } from 'lucide-react'
 import { config } from '../config'
 import { facilityClock, formatWindow, isOpenNow } from '../lib/hours'
@@ -28,11 +28,26 @@ export default function FacilityHeader({ info = {}, infoReady = true, phoneReady
   const gateOpen = isOpenNow(now, f.timeZone, f.gateHours)
   const [i, setI] = useState(0)
   const go = (d: number) => setI((n) => (n + d + f.photos.length) % f.photos.length)
+  // Swipe left/right on touch screens to change photo. Vertical scrolling still works.
+  const touchStart = useRef<{ x: number; y: number } | null>(null)
+  const onTouchStart = (e: React.TouchEvent) => {
+    const t = e.touches[0]
+    touchStart.current = { x: t.clientX, y: t.clientY }
+  }
+  const onTouchEnd = (e: React.TouchEvent) => {
+    const s = touchStart.current
+    touchStart.current = null
+    if (!s || f.photos.length < 2) return
+    const t = e.changedTouches[0]
+    const dx = t.clientX - s.x
+    const dy = t.clientY - s.y
+    if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy) * 1.5) go(dx < 0 ? 1 : -1)
+  }
 
   return (
     <section className="mb-6 overflow-hidden rounded-2xl border border-slate-200 bg-white">
       <div className="grid md:min-h-[320px] md:grid-cols-[1.25fr_1fr]">
-        <div className="relative h-56 overflow-hidden bg-brand-50 sm:h-72 md:h-auto">
+        <div className="relative h-56 touch-pan-y overflow-hidden bg-brand-50 sm:h-72 md:h-auto" onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
           {f.photos.map((p, n) => (
             <img
               key={p.src}
