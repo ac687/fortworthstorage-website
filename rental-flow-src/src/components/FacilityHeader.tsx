@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { ChevronLeft, ChevronRight, Lock, LockOpen, Phone, Star } from 'lucide-react'
 import { config } from '../config'
-import { facilityClock, formatWindow, isOpenNow } from '../lib/hours'
+import { formatWindow, isOpenNow } from '../lib/hours'
 import type { FacilityInfo, Rating } from '../lib/units'
 
 // A grey placeholder bar, shown while the facility's name/address/phone load from
@@ -135,7 +135,6 @@ export default function FacilityHeader({ info = {}, infoReady = true, phoneReady
               <h3 className="font-semibold text-navy">Customer Service Hours</h3>
               <p className="text-slate-600">{formatWindow(f.supportHours)}</p>
             </div>
-            <p className="text-xs text-slate-500">Facility time: {facilityClock(now, f.timeZone)}</p>
           </div>
           <div>
             <h3 className="mb-3 text-sm font-bold text-navy">Amenities</h3>

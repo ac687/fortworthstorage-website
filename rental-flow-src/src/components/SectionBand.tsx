@@ -8,7 +8,7 @@ export default function SectionBand({ checkout }: { checkout: boolean }) {
       </h2>
       {!checkout && (
         <p className="mt-1 text-sm text-slate-600">
-          Pick a size to see your move-in total. Same-day move-in available.
+          Pick a size to see your total due today. Same-day move-in available.
         </p>
       )}
     </div>

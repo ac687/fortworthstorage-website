@@ -35,8 +35,3 @@ export function formatTime(hhmm: string) {
 export function formatWindow(w: HoursWindow) {
   return `Daily: ${formatTime(w.open)} – ${formatTime(w.close)}`
 }
-
-// "6:10 AM EDT", the current time at the facility.
-export function facilityClock(now: Date, timeZone: string) {
-  return new Intl.DateTimeFormat('en-US', { timeZone, hour: 'numeric', minute: '2-digit', timeZoneName: 'short' }).format(now)
-}
