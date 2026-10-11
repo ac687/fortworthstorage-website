@@ -202,6 +202,9 @@ const norm = (v: string) => v.toLowerCase().replace(/[^a-z0-9]/g, '')
 // then "Drive-Up", then "default". Returns null when nothing is typed for this
 // tier, and the page then falls back to the amenities Monument sends. An empty
 // list in the settings file means "show no bullets".
+// Compares bullets ignoring **bold** markers, capitals and extra spaces.
+const plainText = (v: string) => v.replace(/\*\*/g, '').replace(/\s+/g, ' ').trim().toLowerCase()
+
 function hardCodedAmenities(g: ApiUnitGroup, tierName: string): string[] | null {
   const scopes = config.tierAmenities
   const type = g.unitType || 'Self Storage'
@@ -336,6 +339,15 @@ export function groupUnitOptions(groups: ApiUnitGroup[]): UnitOption[] {
   for (const o of options) {
     o.tiers.sort((a, b) => a.rank - b.rank || a.webRate - b.webRate)
     o.totalAvailable = o.tiers.reduce((n, t) => n + t.available, 0)
+    // Drop bullets that only make sense while other tiers still have space (for example a
+    // minimum-rental term on the cheapest tier once it is the only one left).
+    if (config.hideWhenOtherTiersSoldOut.length && o.tiers.length > 1) {
+      const hide = new Set(config.hideWhenOtherTiersSoldOut.map(plainText))
+      for (const t of o.tiers) {
+        const othersSoldOut = o.tiers.every((x) => x === t || x.available <= 0)
+        if (othersSoldOut && t.available > 0) t.features = t.features.filter((f) => !hide.has(plainText(f)))
+      }
+    }
     const pool = o.tiers.filter((t) => t.available > 0)
     o.fromTier = [...(pool.length ? pool : o.tiers)].sort((a, b) => a.webRate - b.webRate)[0]
   }

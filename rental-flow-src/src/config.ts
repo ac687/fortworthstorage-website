@@ -46,6 +46,8 @@ export const config = {
   // Amenity bullets in the tier popup, typed in /js/rental-flow-settings.js.
   // Outer key = unit type ("Drive-Up"), "10x20 Drive-Up" for one size, or "default"; inner key = tier name.
   tierAmenities: {} as Record<string, Record<string, string[]>>,
+  // Bullets hidden on a tier when every other tier of that unit is sold out (settings file).
+  hideWhenOtherTiersSoldOut: [] as string[],
 
   // Bullets on the unit-type chooser (size guide links), typed in /js/rental-flow-settings.js.
   // Key = unit type ("Drive-Up"); a type with no list here uses the built-in wording.

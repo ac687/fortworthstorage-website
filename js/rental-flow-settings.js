@@ -34,7 +34,18 @@ window.RENTAL_FLOW_SETTINGS = {
           default                    (optional) any unit type that has no list of its own
         The unit type and tier names must match Monument's (capitals and dashes don't matter).
         A tier with no list here (and no default) falls back to the amenities set on that unit group in Monument.
-        Use an empty list [] to show no bullets for a tier. Bullets show in the order written. */
+        Use an empty list [] to show no bullets for a tier. Bullets show in the order written.
+
+        BOLD  Wrap the words you want bold in double asterisks. Works on a whole bullet or part of one:
+                '**24-Hour Access**'
+                'Closest to the **front office**'
+              Nothing else is formatted, and an unmatched ** is simply ignored.
+
+        HIDE A BULLET WHEN THE OTHER TIERS ARE SOLD OUT  Use hideWhenOtherTiersSoldOut (just below the
+              lists). Any bullet listed there disappears from a tier when every other tier of that same
+              unit has 0 available, and shows as normal while any other tier still has space. The text
+              must match the bullet (capitals and **bold** marks are ignored). It applies to every tier
+              and unit that uses that bullet. Use [] to turn it off. */
   tierAmenities: {
     'Drive-Up': {
       Essential: ['Furthest from Entrance', '3 Month Minimum Rental', '24/7 Online Account Management'],
@@ -48,6 +59,8 @@ window.RENTAL_FLOW_SETTINGS = {
       Premium: ['24-Hour Access', 'Month-to-month contract', '24/7 Online Account Management', 'Best Location/Easiest Access'],
     },
   },
+
+  hideWhenOtherTiersSoldOut: ['3 Month Minimum Rental'],
 
   /* 1. HOURS shown in the facility header (24-hour "HH:MM"), read in this time zone.
         Time zone examples: America/New_York, America/Chicago, America/Denver, America/Los_Angeles */

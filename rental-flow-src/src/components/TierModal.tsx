@@ -3,6 +3,7 @@ import { Check, X } from 'lucide-react'
 import type { Tier, UnitOption } from '../lib/units'
 import { availabilityBadge, typeLabel, withoutPromo } from '../lib/units'
 import type { CheckoutMode } from '../config'
+import RichText from './RichText'
 import Price, { needsSmallPrice } from './Price'
 import TierAccordion from './TierAccordion'
 
@@ -132,7 +133,7 @@ export default function TierModal({ unit, mode, allowWaitlist = true, onClose, o
                   {tier.features.map((f) => (
                     <li key={f} className="flex gap-2">
                       <Check className={`mt-0.5 shrink-0 ${unavailable ? 'text-slate-400' : 'text-brand'}`} size={16} aria-hidden="true" />
-                      {f}
+                      <RichText text={f} />
                     </li>
                   ))}
                 </ul>

@@ -10,6 +10,7 @@ export type SiteSettings = {
   photos?: { src: string; alt: string }[]
   unitPhotos?: Record<string, string>
   tierAmenities?: Record<string, Record<string, string[]>>
+  hideWhenOtherTiersSoldOut?: string[]
   typeBullets?: Record<string, string[]>
   estimate?: { billingMode?: string; prepayLastDays?: number; fullMonthPromoWords?: string[] }
   sizeInfo?: Record<string, { summary?: string; fits?: string[] }>
@@ -129,6 +130,10 @@ export function applySettings(raw: unknown = window.RENTAL_FLOW_SETTINGS): Recor
       if (Object.keys(inner).length) map[scope.trim()] = inner
     }
     config.tierAmenities = map
+  }
+
+  if (Array.isArray(s.hideWhenOtherTiersSoldOut)) {
+    config.hideWhenOtherTiersSoldOut = s.hideWhenOtherTiersSoldOut.map((a) => str(a, 120)).filter((a): a is string => !!a)
   }
 
   const tb = obj(s.typeBullets)

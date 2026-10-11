@@ -3,6 +3,7 @@ import { Check } from 'lucide-react'
 import type { Tier, UnitOption } from '../lib/units'
 import { availabilityBadge, formatPrice, promoLabels, withoutPromo } from '../lib/units'
 import type { CheckoutMode } from '../config'
+import RichText from './RichText'
 
 type Props = {
   unit: UnitOption
@@ -115,7 +116,7 @@ export default function TierAccordion({ unit, mode, allowWaitlist, onChoose }: P
                       {tier.features.map((f) => (
                         <li key={f} className="flex gap-2">
                           <Check className="mt-0.5 shrink-0 text-brand" size={16} aria-hidden="true" />
-                          {f}
+                          <RichText text={f} />
                         </li>
                       ))}
                     </ul>
