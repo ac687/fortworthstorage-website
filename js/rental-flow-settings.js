@@ -48,19 +48,19 @@ window.RENTAL_FLOW_SETTINGS = {
               and unit that uses that bullet. Use [] to turn it off. */
   tierAmenities: {
     'Drive-Up': {
-      Essential: ['Furthest from Entrance', '3 Month Minimum Rental', '24/7 Online Account Management'],
+      Essential: ['Furthest from Entrance', '3-Month Minimum Commitment', '24/7 Online Account Management'],
       Preferred: ['Easy Access', 'Month-to-month contract', 'More Convenient', '24/7 Online Account Management'],
       Premium: ['24-Hour Access', 'Month-to-month contract', '24/7 Online Account Management', 'Best Location/Easiest Access'],
     },
     // Any other unit type uses these.
     default: {
-      Essential: ['Furthest from Entrance', '3 Month Minimum Rental', '24/7 Online Account Management'],
+      Essential: ['Furthest from Entrance', '3-Month Minimum Commitment', '24/7 Online Account Management'],
       Preferred: ['Easy Access', 'Month-to-month contract', 'More Convenient', '24/7 Online Account Management'],
       Premium: ['24-Hour Access', 'Month-to-month contract', '24/7 Online Account Management', 'Best Location/Easiest Access'],
     },
   },
 
-  hideWhenOtherTiersSoldOut: ['3 Month Minimum Rental'],
+  hideWhenOtherTiersSoldOut: ['3-Month Minimum Commitment'],
 
   /* 1. HOURS shown in the facility header (24-hour "HH:MM"), read in this time zone.
         Time zone examples: America/New_York, America/Chicago, America/Denver, America/Los_Angeles */
