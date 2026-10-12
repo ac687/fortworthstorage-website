@@ -11,6 +11,7 @@ import UnitCard from './components/UnitCard'
 import TierModal from './components/TierModal'
 import TypeChooser from './components/TypeChooser'
 import CheckoutPanel from './components/CheckoutPanel'
+import { startTracking } from './lib/analytics'
 
 type Filter = 'all' | Category
 type Sort = 'size' | 'price-asc' | 'price-desc'
@@ -107,6 +108,7 @@ export default function App({ host, layer }: { host: HTMLElement; layer: HTMLEle
 
   const startCheckout = useCallback(
     (unit: UnitOption, tier: Tier, mode: CheckoutMode) => {
+      startTracking(unit, tier, mode)
       pushEvent(mode === 'waitlist' ? 'join_waitlist' : 'begin_checkout', {
         rental_mode: mode,
         unit_size: unit.size,

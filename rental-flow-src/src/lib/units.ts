@@ -1,5 +1,6 @@
 import { config } from '../config'
 import staticGroups from '../data/unitGroups.static.json'
+import { trackOwnEvent } from './analytics'
 
 // Shape of a unit group as returned by Monument's Shopping API
 // (GET /facilities/:facilityUuid/unitGroups). Rates are in pennies.
@@ -386,4 +387,5 @@ export function pushEvent(event: string, data: Record<string, unknown> = {}) {
   const w = window as unknown as { dataLayer?: unknown[] }
   w.dataLayer = w.dataLayer || []
   w.dataLayer.push({ event, ...data })
+  trackOwnEvent(event, data)
 }

@@ -6,6 +6,7 @@ import { moveInEstimate, todayAtFacility, type Estimate } from '../lib/estimate'
 import { estimateFromCart, fetchCart } from '../lib/cart'
 import EstimateCard from './EstimateCard'
 import { config, monumentCheckoutUrl, type CheckoutMode } from '../config'
+import { trackMonumentEvent } from '../lib/analytics'
 
 type Props = {
   unit: UnitOption
@@ -135,6 +136,7 @@ export default function CheckoutPanel({ unit, tier, mode, onBack, scrollToTop, f
         const w = window as unknown as { dataLayer?: unknown[] }
         w.dataLayer = w.dataLayer || []
         w.dataLayer.push(d)
+        trackMonumentEvent(d as Record<string, unknown>, e.origin)
         return
       }
       const h = Number(d)

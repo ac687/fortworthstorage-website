@@ -62,3 +62,26 @@ The page uses the rules first and the promotion's name only as a fallback:
 - hidden: promotions that are inactive or `tenantType` Business only
 If the details call fails, the response header `x-promo-details` says why and the name-based behavior applies.
 Needs `MONUMENT_INTEGRATION_API_KEY` in Cloudflare (falls back to `MONUMENT_API_KEY`).
+
+## Analytics (GA4 funnel events)
+`src/lib/analytics.ts` sends the rental steps straight to this site's own GA4 property with `gtag('event', …, { send_to: <measurementId> })`.
+The existing `dataLayer` pushes (including the relay of Monument's iframe events) are unchanged, so the Google Tag Manager
+container on the page keeps working. That container sends to a different GA4 property, so it does not feed this one.
+
+| Where | GA4 event |
+|---|---|
+| Unit card / size button clicked | `rental_unit_selected` |
+| Tier chosen, checkout opens (rent) | `begin_checkout` (tier, promo, `value` = monthly rent) |
+| Checkout opens (reserve / waitlist) | `rental_reserve_started` / `rental_waitlist_started` |
+| Monument `lead_generated` | `generate_lead` |
+| Monument `info_provided` | `rental_info_provided` |
+| Monument `unit_details_provided` | `rental_details_provided` |
+| Monument `payment_provided` (not when `payment_success` is false) | `add_payment_info` |
+| Monument `lease_signature_page` | `rental_lease_viewed` |
+| Monument `lease_signed` | `rental_lease_signed` (`value` = monthly rent, not the amount paid) |
+
+Each Monument step is sent once per checkout. Monument's message contents are never forwarded; only the event name is read,
+and the details (facility, size, type, tier, promo) come from what the visitor picked on this page.
+Settings (`analytics` in `/js/rental-flow-settings.js`): `measurementId`, `productionHosts`, `enabled`.
+On any address not in `productionHosts`, and for events from Monument's staging checkout, events carry `debug_mode`
+(visible in GA4 DebugView; activate Admin > Data filters > Developer traffic to keep them out of reports).

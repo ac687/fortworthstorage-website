@@ -95,6 +95,17 @@ export const config = {
   sizeInfo: {} as Record<string, { summary: string; fits: string[] }>,
   sizeGuidePath: '/size-guide',
 
+  // GA4 events sent straight from this page to this website's own property (see lib/analytics.ts).
+  // All of it can be set in /js/rental-flow-settings.js (analytics: {...}).
+  analytics: {
+    enabled: true,
+    measurementId: 'G-6CQ8V3S3JV',
+    // Sites listed here send real events. Any other address (a Cloudflare preview, localhost) sends debug
+    // events, which show in GA4 DebugView and can be kept out of reports with the Developer traffic filter.
+    productionHosts: ['www.storagefortworthtexas.com', 'storagefortworthtexas.com'] as string[],
+    facilityName: '', // leave empty to use the facility name above
+  },
+
   // Px to leave above the flow when scrolling to it (sticky nav height).
   scrollOffset: 90,
 }

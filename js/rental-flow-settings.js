@@ -15,6 +15,22 @@
    ========================================================================== */
 window.RENTAL_FLOW_SETTINGS = {
 
+  /* ANALYTICS  (rental funnel events sent to this website's own Google Analytics 4 property)
+        Events: rental_unit_selected, begin_checkout, rental_info_provided, generate_lead, rental_details_provided,
+        add_payment_info, rental_lease_viewed, rental_lease_signed (plus rental_reserve_started,
+        rental_waitlist_started, rental_reserved, rental_waitlist_joined). No names, emails or card details are sent.
+        measurementId    this site's GA4 Measurement ID (Admin > Data streams). Copy this block to each site and change it.
+        productionHosts  addresses that send real events. Any other address (preview deployments, localhost) sends
+                         debug events: they show in GA4 DebugView, not in the normal reports once the
+                         "Developer traffic" data filter is active (Admin > Data filters).
+        enabled: false   turns this tracking off.
+        Not set here = the built-in defaults below are used (Tidy Up). */
+  analytics: {
+    enabled: true,
+    measurementId: 'G-6CQ8V3S3JV',
+    productionHosts: ['www.storagefortworthtexas.com', 'storagefortworthtexas.com'],
+  },
+
   /* UNIT-TYPE CHOOSER  (the popup that asks "Drive Up or Temperature Controlled?" when a size-guide
         button is clicked for a size that comes in both types)
         Short bullet points under each type. Key = unit type, as named in Monument (capitals and dashes

@@ -17,6 +17,7 @@ export type SiteSettings = {
   tiers?: Record<string, { rank?: number; label?: string; copy?: string; highlight?: boolean }>
   checkout?: { brandUuid?: string; facilityUuid?: string; params?: string }
   backup?: { name?: string; street?: string; cityLine?: string; phone?: string }
+  analytics?: { enabled?: boolean; measurementId?: string; productionHosts?: string[]; facilityName?: string }
   colors?: Partial<Record<'brand' | 'brandDark' | 'navy' | 'brand50' | 'brand100' | 'button' | 'buttonHover', string>>
 }
 
@@ -193,6 +194,18 @@ export function applySettings(raw: unknown = window.RENTAL_FLOW_SETTINGS): Recor
       config.facility.phoneDisplay = phone
       config.facility.phoneHref = `tel:+1${digits.slice(-10)}`
     }
+  }
+
+  const an = obj(s.analytics)
+  if (an) {
+    if (typeof an.enabled === 'boolean') config.analytics.enabled = an.enabled
+    if (typeof an.measurementId === 'string' && /^G-[A-Z0-9]{6,14}$/.test(an.measurementId.trim())) config.analytics.measurementId = an.measurementId.trim()
+    if (Array.isArray(an.productionHosts)) {
+      const hosts = an.productionHosts.map((h) => str(h, 120)).filter((h): h is string => !!h && /^[a-z0-9.-]+$/i.test(h)).map((h) => h.toLowerCase())
+      if (hosts.length) config.analytics.productionHosts = hosts
+    }
+    const fn = str(an.facilityName, 80)
+    if (fn) config.analytics.facilityName = fn
   }
 
   const colors = obj(s.colors)
