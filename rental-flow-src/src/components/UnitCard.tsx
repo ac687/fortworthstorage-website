@@ -2,6 +2,7 @@ import { Car, Check, Warehouse } from 'lucide-react'
 import type { UnitOption } from '../lib/units'
 import { accessLabel, availabilityBadge, typeLabel, withoutPromo } from '../lib/units'
 import Price from './Price'
+import TempIcon from './TempIcon'
 
 type Props = {
   unit: UnitOption
@@ -27,7 +28,10 @@ export default function UnitCard({ unit, onSelect, allowReservations = true, all
             )}
           </div>
           <div className="min-w-0">
-            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">{typeLabel(unit.category, unit.unitType)}</p>
+            <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-slate-500">
+              {typeLabel(unit.category, unit.unitType)}
+              <TempIcon category={unit.category} height={16} />
+            </p>
             <h3 className="flex flex-wrap items-center gap-x-3 gap-y-1 font-display text-xl font-bold text-navy">
               {unit.width}' x {unit.depth}'
               {badge && (
