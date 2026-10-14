@@ -104,11 +104,11 @@ window.RENTAL_FLOW_SETTINGS = {
 
   /* 4. PHOTO ON EACH UNIT CARD, by size ("WIDTHxDEPTH": image). Sizes with no photo show none. */
   unitPhotos: {
-    '10x10': '/images/10x10-storage-unit-p-500.webp',
-    '10x20': '/images/10x20-storage-unit-p-500.webp',
-    '10x30': '/images/10x30-storage-unit-p-500.webp',
-    '20x20': '/images/20x20-storage-unit-p-500.webp',
-    '20x30': '/images/20x30-storage-unit-p-500.webp',
+    '10x10': '/images/10x10-unit-thumb.webp',
+    '10x20': '/images/10x20-unit-thumb.webp',
+    '10x30': '/images/10x30-unit-thumb.webp',
+    '20x20': '/images/20x20-unit-thumb.webp',
+    '20x30': '/images/20x30-unit-thumb.webp',
   },
 
   /* 5. TIER WORDING. The name on the left must match the unit group name in

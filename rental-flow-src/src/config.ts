@@ -29,11 +29,11 @@ export const config = {
 
   // Photo shown on each unit card, by size.
   unitPhotos: {
-    '10x10': '/images/10x10-storage-unit-p-500.webp',
-    '10x20': '/images/10x20-storage-unit-p-500.webp',
-    '10x30': '/images/10x30-storage-unit-p-500.webp',
-    '20x20': '/images/20x20-storage-unit-p-500.webp',
-    '20x30': '/images/20x30-storage-unit-p-500.webp',
+    '10x10': '/images/10x10-unit-thumb.webp',
+    '10x20': '/images/10x20-unit-thumb.webp',
+    '10x30': '/images/10x30-unit-thumb.webp',
+    '20x20': '/images/20x20-unit-thumb.webp',
+    '20x30': '/images/20x30-unit-thumb.webp',
   } as Record<string, string>,
 
   // Tier names exactly as they appear in Monument's unit group "description".

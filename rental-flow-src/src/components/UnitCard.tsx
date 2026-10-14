@@ -22,7 +22,7 @@ export default function UnitCard({ unit, onSelect, allowReservations = true, all
         <div className="flex items-center justify-center gap-4 lg:justify-start">
           <div className="relative h-20 w-24 shrink-0 overflow-hidden rounded-lg bg-brand-50">
             {unit.photo ? (
-              <img src={unit.photo} alt={`${unit.width}' x ${unit.depth}' storage unit`} loading="lazy" className="h-full w-full object-cover" />
+              <img src={unit.photo} alt={`${unit.width}' x ${unit.depth}' storage unit`} loading="lazy" className="h-full w-full object-contain p-1" />
             ) : (
               unit.category === 'parking' ? <Car className="m-auto h-full text-brand" /> : <Warehouse className="m-auto h-full text-brand" />
             )}
