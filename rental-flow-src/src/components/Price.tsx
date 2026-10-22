@@ -76,7 +76,6 @@ export default function Price({
         <strong className={`${big} font-extrabold text-navy`}>{formatPrice(tier.webRate)}</strong>
         <span className="text-xs text-slate-500">/mo</span>
         <p className="text-xs font-semibold text-slate-500">{afterLabel}</p>
-        {strike && <p className="text-xs text-slate-500 line-through">{formatPrice(tier.streetRate)}</p>}
       </div>
     )
     const pill = (
