@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
-import { Check, X } from 'lucide-react'
+import { Check, Lock, X } from 'lucide-react'
 import type { Tier, UnitOption } from '../lib/units'
 import { availabilityBadge, typeLabel, withoutPromo } from '../lib/units'
-import type { CheckoutMode } from '../config'
+import { config, type CheckoutMode } from '../config'
 import RichText from './RichText'
 import Price, { needsSmallPrice } from './Price'
 import TierAccordion from './TierAccordion'
@@ -80,6 +80,17 @@ export default function TierModal({ unit, mode, allowWaitlist = true, onClose, o
             <X size={20} />
           </button>
         </div>
+
+        {config.discLock.enabled && (
+          <div className="mb-4 flex shrink-0 items-center gap-2.5 rounded-[10px] border border-brand-100 bg-brand-50 px-3 py-2 text-[13px] leading-snug text-navy lg:mb-7 lg:gap-3 lg:px-4 lg:py-2.5 lg:text-[15px]">
+            <span className="grid size-6 shrink-0 place-items-center rounded-full bg-brand-dark text-white lg:size-7">
+              <Lock size={14} aria-hidden="true" />
+            </span>
+            <span>
+              <RichText text={desktop ? config.discLock.popupText : config.discLock.popupTextShort} />
+            </span>
+          </div>
+        )}
 
         {!desktop ? (
           <TierAccordion unit={unit} mode={mode} allowWaitlist={allowWaitlist} onChoose={onChoose} />

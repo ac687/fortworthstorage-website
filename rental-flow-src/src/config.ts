@@ -95,6 +95,20 @@ export const config = {
   sizeInfo: {} as Record<string, { summary: string; fits: string[] }>,
   sizeGuidePath: '/size-guide',
 
+  // Free disc lock this facility gives every tenant. Off by default; a site turns it on, and can change
+  // every word, in /js/rental-flow-settings.js (discLock: {...}). Shown as a pill on each unit card, a
+  // "Free" line in the "Estimated due today" box, and one line above the tiers in the tier popup.
+  // In the popup text, **double asterisks** make the words bold.
+  discLock: {
+    enabled: false,
+    cardLabel: 'Free disc lock included', // pill on each unit card
+    estimateName: 'Disc lock', // line in the "Estimated due today" box
+    estimateNote: 'Waiting inside your unit. Yours to keep.', // small text under that line; empty hides it
+    retailValue: 20, // dollars, shown crossed out beside "Free"; 0 hides the crossed-out price
+    popupText: '**Every unit includes a free disc lock**, a $20 value. Waiting inside your unit, yours to keep.', // tier popup, desktop
+    popupTextShort: '**Every unit includes a free disc lock**, yours to keep.', // tier popup on phones and tablets
+  },
+
   // GA4 events sent straight from this page to this website's own property (see lib/analytics.ts).
   // All of it can be set in /js/rental-flow-settings.js (analytics: {...}).
   analytics: {

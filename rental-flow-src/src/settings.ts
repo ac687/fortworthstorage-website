@@ -14,6 +14,15 @@ export type SiteSettings = {
   typeBullets?: Record<string, string[]>
   estimate?: { billingMode?: string; prepayLastDays?: number; fullMonthPromoWords?: string[] }
   sizeInfo?: Record<string, { summary?: string; fits?: string[] }>
+  discLock?: {
+    enabled?: boolean
+    cardLabel?: string
+    estimateName?: string
+    estimateNote?: string
+    retailValue?: number
+    popupText?: string
+    popupTextShort?: string
+  }
   tiers?: Record<string, { rank?: number; label?: string; copy?: string; highlight?: boolean }>
   checkout?: { brandUuid?: string; facilityUuid?: string; params?: string }
   backup?: { name?: string; street?: string; cityLine?: string; phone?: string }
@@ -168,6 +177,22 @@ export function applySettings(raw: unknown = window.RENTAL_FLOW_SETTINGS): Recor
       if (summary || fits.length) map[size] = { summary: summary ?? '', fits }
     }
     config.sizeInfo = map
+  }
+
+  const dl = obj(s.discLock)
+  if (dl) {
+    if (typeof dl.enabled === 'boolean') config.discLock.enabled = dl.enabled
+    const label = str(dl.cardLabel, 60)
+    const name = str(dl.estimateName, 60)
+    const popup = str(dl.popupText, 240)
+    const popupShort = str(dl.popupTextShort, 160)
+    if (label) config.discLock.cardLabel = label
+    if (name) config.discLock.estimateName = name
+    // The note may be emptied on purpose to hide it.
+    if (typeof dl.estimateNote === 'string' && dl.estimateNote.length <= 160) config.discLock.estimateNote = dl.estimateNote.trim()
+    if (typeof dl.retailValue === 'number' && Number.isFinite(dl.retailValue) && dl.retailValue >= 0 && dl.retailValue <= 1000) config.discLock.retailValue = dl.retailValue
+    if (popup) config.discLock.popupText = popup
+    if (popupShort) config.discLock.popupTextShort = popupShort
   }
 
   const co = obj(s.checkout)

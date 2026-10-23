@@ -31,6 +31,26 @@ window.RENTAL_FLOW_SETTINGS = {
     productionHosts: ['www.storagefortworthtexas.com', 'storagefortworthtexas.com'],
   },
 
+  /* FREE DISC LOCK  (every tenant gets a disc lock inside their unit and keeps it)
+        Shows in three places: a pill on each unit card, a "Free" line in the "Estimated due today" box,
+        and one line above the tiers in the tier popup. The home page headline pill is in index.html.
+        enabled: false     hides it everywhere in the rental flow.
+        cardLabel          the pill on each unit card.
+        estimateName       the line in the "Estimated due today" box, with estimateNote as small text under it
+                           (use '' for no note).
+        retailValue        dollars, shown crossed out beside "Free" in the estimate. 0 shows just "Free".
+        popupText          the line above the tiers on desktop; popupTextShort on phones and tablets.
+                           **Double asterisks** make words bold. */
+  discLock: {
+    enabled: true,
+    cardLabel: 'Free disc lock included',
+    estimateName: 'Disc lock',
+    estimateNote: 'Waiting inside your unit. Yours to keep.',
+    retailValue: 20,
+    popupText: '**Every unit includes a free disc lock**, a $20 value. Waiting inside your unit, yours to keep.',
+    popupTextShort: '**Every unit includes a free disc lock**, yours to keep.',
+  },
+
   /* UNIT-TYPE CHOOSER  (the popup that asks "Drive Up or Temperature Controlled?" when a size-guide
         button is clicked for a size that comes in both types)
         Short bullet points under each type. Key = unit type, as named in Monument (capitals and dashes

@@ -1,4 +1,5 @@
-import { Car, Check, Warehouse } from 'lucide-react'
+import { Car, Check, Lock, Warehouse } from 'lucide-react'
+import { config } from '../config'
 import type { UnitOption } from '../lib/units'
 import { accessLabel, availabilityBadge, typeLabel, withoutPromo } from '../lib/units'
 import Price from './Price'
@@ -43,6 +44,14 @@ export default function UnitCard({ unit, onSelect, allowReservations = true, all
             <p className="text-sm text-slate-500">
               <Check size={13} className="-mt-0.5 inline" aria-hidden="true" /> {accessLabel(unit.category, unit.unitType)}
             </p>
+            {config.discLock.enabled && (
+              <p className="mt-1.5">
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-brand-100 bg-brand-50 px-2.5 py-1 text-[13px] font-semibold text-navy">
+                  <Lock size={14} className="shrink-0 text-brand-dark" aria-hidden="true" />
+                  {config.discLock.cardLabel}
+                </span>
+              </p>
+            )}
           </div>
         </div>
 
