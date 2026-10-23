@@ -50,27 +50,6 @@ export default function EstimateCard({ estimate: e, collapsed, onToggle }: Props
             <span className="text-emerald-700">-{money(e.promoDiscount)}</span>
           </div>
         )}
-        {config.discLock.enabled && (
-          <div className="my-1 flex items-start justify-between gap-4 rounded-lg border border-brand-100 bg-white px-2.5 py-2 text-sm">
-            <span className="flex items-start gap-2 font-semibold text-navy">
-              <Lock size={16} className="mt-0.5 shrink-0 text-brand-dark" aria-hidden="true" />
-              <span>
-                {config.discLock.estimateName}
-                {config.discLock.estimateNote && <span className="block text-xs font-normal text-slate-500">{config.discLock.estimateNote}</span>}
-              </span>
-            </span>
-            <span className="whitespace-nowrap font-bold text-emerald-700">
-              {config.discLock.retailValue > 0 && (
-                <>
-                  <span className="sr-only">Value </span>
-                  <s className="mr-2 text-[13px] font-normal text-slate-500">{money(config.discLock.retailValue)}</s>
-                  <span className="sr-only">, </span>
-                </>
-              )}
-              Free
-            </span>
-          </div>
-        )}
         {e.protectionMonthly > 0 && (
           <div className={row}>
             <span className="text-slate-600">
@@ -126,6 +105,12 @@ export default function EstimateCard({ estimate: e, collapsed, onToggle }: Props
           <span className="text-slate-600">
             Admin fee
             <span className="block text-xs text-slate-500">One time</span>
+            {config.discLock.enabled && config.discLock.adminFeeNote && (
+              <span className="mt-0.5 flex items-center gap-1.5 text-xs font-semibold text-navy">
+                <Lock size={12} className="shrink-0 text-brand-dark" aria-hidden="true" />
+                {config.discLock.adminFeeNote}
+              </span>
+            )}
           </span>
           <span className="text-slate-900">{money(e.adminFee)}</span>
         </div>

@@ -17,9 +17,7 @@ export type SiteSettings = {
   discLock?: {
     enabled?: boolean
     cardLabel?: string
-    estimateName?: string
-    estimateNote?: string
-    retailValue?: number
+    adminFeeNote?: string
     popupText?: string
     popupTextShort?: string
   }
@@ -183,14 +181,11 @@ export function applySettings(raw: unknown = window.RENTAL_FLOW_SETTINGS): Recor
   if (dl) {
     if (typeof dl.enabled === 'boolean') config.discLock.enabled = dl.enabled
     const label = str(dl.cardLabel, 60)
-    const name = str(dl.estimateName, 60)
     const popup = str(dl.popupText, 240)
     const popupShort = str(dl.popupTextShort, 160)
     if (label) config.discLock.cardLabel = label
-    if (name) config.discLock.estimateName = name
     // The note may be emptied on purpose to hide it.
-    if (typeof dl.estimateNote === 'string' && dl.estimateNote.length <= 160) config.discLock.estimateNote = dl.estimateNote.trim()
-    if (typeof dl.retailValue === 'number' && Number.isFinite(dl.retailValue) && dl.retailValue >= 0 && dl.retailValue <= 1000) config.discLock.retailValue = dl.retailValue
+    if (typeof dl.adminFeeNote === 'string' && dl.adminFeeNote.length <= 120) config.discLock.adminFeeNote = dl.adminFeeNote.trim()
     if (popup) config.discLock.popupText = popup
     if (popupShort) config.discLock.popupTextShort = popupShort
   }

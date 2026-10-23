@@ -97,14 +97,12 @@ export const config = {
 
   // Free disc lock this facility gives every tenant. Off by default; a site turns it on, and can change
   // every word, in /js/rental-flow-settings.js (discLock: {...}). Shown as a pill on each unit card, a
-  // "Free" line in the "Estimated due today" box, and one line above the tiers in the tier popup.
+  // note under "Admin fee" in the "Estimated due today" box, and one line above the tiers in the tier popup.
   // In the popup text, **double asterisks** make the words bold.
   discLock: {
     enabled: false,
     cardLabel: 'Free disc lock included', // pill on each unit card
-    estimateName: 'Disc lock', // line in the "Estimated due today" box
-    estimateNote: 'Waiting inside your unit. Yours to keep.', // small text under that line; empty hides it
-    retailValue: 20, // dollars, shown crossed out beside "Free"; 0 hides the crossed-out price
+    adminFeeNote: 'Includes a free disc lock, a $20 value', // small line under "Admin fee" in the estimate; empty hides it
     popupText: '**Every unit includes a free disc lock**, a $20 value. Waiting inside your unit, yours to keep.', // tier popup, desktop
     popupTextShort: '**Every unit includes a free disc lock**, yours to keep.', // tier popup on phones and tablets
   },

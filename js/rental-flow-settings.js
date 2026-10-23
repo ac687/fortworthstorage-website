@@ -32,21 +32,17 @@ window.RENTAL_FLOW_SETTINGS = {
   },
 
   /* FREE DISC LOCK  (every tenant gets a disc lock inside their unit and keeps it)
-        Shows in three places: a pill on each unit card, a "Free" line in the "Estimated due today" box,
-        and one line above the tiers in the tier popup. The home page headline pill is in index.html.
+        Shows in three places: a pill on each unit card, a note under "Admin fee" in the "Estimated due today"
+        box, and one line above the tiers in the tier popup. The home page headline pill is in index.html.
         enabled: false     hides it everywhere in the rental flow.
         cardLabel          the pill on each unit card.
-        estimateName       the line in the "Estimated due today" box, with estimateNote as small text under it
-                           (use '' for no note).
-        retailValue        dollars, shown crossed out beside "Free" in the estimate. 0 shows just "Free".
+        adminFeeNote       the small line under "Admin fee" in the estimate (use '' for no note).
         popupText          the line above the tiers on desktop; popupTextShort on phones and tablets.
                            **Double asterisks** make words bold. */
   discLock: {
     enabled: true,
     cardLabel: 'Free disc lock included',
-    estimateName: 'Disc lock',
-    estimateNote: 'Waiting inside your unit. Yours to keep.',
-    retailValue: 20,
+    adminFeeNote: 'Includes a free disc lock, a $20 value',
     popupText: '**Every unit includes a free disc lock**, a $20 value. Waiting inside your unit, yours to keep.',
     popupTextShort: '**Every unit includes a free disc lock**, yours to keep.',
   },
