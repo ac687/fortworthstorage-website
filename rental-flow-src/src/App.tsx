@@ -130,6 +130,8 @@ export default function App({ host, layer }: { host: HTMLElement; layer: HTMLEle
 
   const openUnit = useCallback(
     (unit: UnitOption, mode: 'rent' | 'reserve') => {
+      // Vehicle parking is rented by phone, so it never opens a checkout.
+      if (unit.category === 'parking') return
       pushEvent('select_unit', { unit_size: unit.size, unit_type: unit.unitType, rental_mode: mode, units_left: unit.totalAvailable })
       // Reserve goes straight to the lowest tier that has space, with no popup.
       if (mode === 'reserve') {
@@ -166,8 +168,9 @@ export default function App({ host, layer }: { host: HTMLElement; layer: HTMLEle
     (rawSize: string, type: string | null): boolean => {
       if (options === null) return false
       const size = rawSize.toLowerCase().replace(/[^0-9x]/g, '')
+      // Vehicle parking has no online rental, so a ?rent= link never opens it.
       const matches = options
-        .filter((o) => o.size === size)
+        .filter((o) => o.size === size && o.category !== 'parking')
         .sort((a, b) => (a.category === 'drive-up' ? 0 : 1) - (b.category === 'drive-up' ? 0 : 1))
       if (matches.length === 0) return false
       const typed = type ? matches.filter((o) => o.category === type) : []
@@ -234,12 +237,21 @@ export default function App({ host, layer }: { host: HTMLElement; layer: HTMLEle
     const byPrice = (a: UnitOption, b: UnitOption) => a.fromTier.webRate - b.fromTier.webRate
     if (sort === 'price-asc') return [...list].sort(byPrice)
     if (sort === 'price-desc') return [...list].sort((a, b) => byPrice(b, a))
+    // All, by size: units you can rent first, then vehicle parking (call to rent), then sold-out
+    // units that only offer the waitlist. Each part stays in size order (the sort is stable).
+    if (filter === 'all') {
+      const rank = (o: UnitOption) => (o.category === 'parking' ? 1 : o.totalAvailable <= 0 ? 2 : 0)
+      return [...list].sort((a, b) => rank(a) - rank(b))
+    }
     return list
   }, [options, filter, sort])
 
   // Only offer a filter for types this facility actually has.
   const present = useMemo(() => new Set((options ?? []).map((o) => o.category)), [options])
   const loading = options === null && !loadError
+  // The number on the "Call" button for vehicle parking: Monument's phone when it has answered, else the saved one.
+  const facilityPhone = { ...config.facility, ...apiFacility }
+  const callPhone = phoneReady ? { display: facilityPhone.phoneDisplay, href: facilityPhone.phoneHref } : null
 
   const filterBtn = (value: Filter, label: string, first = false) => (
     <button
@@ -311,7 +323,15 @@ export default function App({ host, layer }: { host: HTMLElement; layer: HTMLEle
                     <div key={n} className="h-36 animate-pulse rounded-2xl border border-slate-200 bg-slate-100" aria-hidden="true" />
                   ))}
                 {visible.map((unit) => (
-                  <UnitCard key={unit.key} unit={unit} onSelect={openUnit} allowReservations={policy.allowReservations !== false} allowWaitlist={policy.allowWaitlist !== false} />
+                  <UnitCard
+                    key={unit.key}
+                    unit={unit}
+                    onSelect={openUnit}
+                    allowReservations={policy.allowReservations !== false}
+                    allowWaitlist={policy.allowWaitlist !== false}
+                    phone={callPhone}
+                    onCall={(u) => pushEvent('call_to_rent', { unit_size: u.size, unit_type: u.unitType, units_left: u.totalAvailable })}
+                  />
                 ))}
                 {!loading && options !== null && visible.length === 0 && <p className="py-8 text-center text-slate-500">No units of this type right now.</p>}
               </div>

@@ -121,6 +121,13 @@ export function trackOwnEvent(event: string, data: Record<string, unknown>) {
     send(data.rental_mode === 'reserve' ? 'rental_reserve_started' : 'begin_checkout', contextParams())
   } else if (event === 'join_waitlist') {
     send('rental_waitlist_started', contextParams())
+  } else if (event === 'call_to_rent') {
+    // A tap on a vehicle parking card's "Call" button (parking is rented by phone).
+    send('rental_call_clicked', {
+      ...contextParams(false),
+      unit_size: String(data.unit_size ?? ''),
+      unit_type: String(data.unit_type ?? ''),
+    })
   }
 }
 

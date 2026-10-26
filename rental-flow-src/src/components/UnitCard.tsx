@@ -1,4 +1,4 @@
-import { Car, Check, Lock, Warehouse } from 'lucide-react'
+import { Car, Check, Lock, Phone, Warehouse } from 'lucide-react'
 import { config } from '../config'
 import type { UnitOption } from '../lib/units'
 import { accessLabel, availabilityBadge, typeLabel, withoutPromo } from '../lib/units'
@@ -10,10 +10,15 @@ type Props = {
   onSelect: (unit: UnitOption, mode: 'rent' | 'reserve') => void
   allowReservations?: boolean
   allowWaitlist?: boolean
+  // The facility phone. null while it is still loading. Vehicle parking is rented by phone, not online.
+  phone?: { display: string; href: string } | null
+  onCall?: (unit: UnitOption) => void
 }
 
-export default function UnitCard({ unit, onSelect, allowReservations = true, allowWaitlist = true }: Props) {
-  const badge = availabilityBadge(unit.totalAvailable)
+export default function UnitCard({ unit, onSelect, allowReservations = true, allowWaitlist = true, phone = null, onCall }: Props) {
+  // Parking and RV spaces are rented by phone, so availability wording ("Waitlist only", "Only 2 left") is left off.
+  const byPhone = unit.category === 'parking'
+  const badge = byPhone ? null : availabilityBadge(unit.totalAvailable)
   const soldOut = unit.totalAvailable <= 0
   const multi = unit.tiers.length > 1
 
@@ -66,7 +71,23 @@ export default function UnitCard({ unit, onSelect, allowReservations = true, all
         </div>
 
         <div className="flex gap-3 md:mx-auto md:w-full md:max-w-[380px] lg:mx-0 lg:max-w-none lg:w-auto lg:justify-end">
-          {soldOut && !allowWaitlist ? (
+          {byPhone ? (
+            <div className="flex w-full flex-col items-stretch gap-2 lg:w-auto lg:items-end">
+              {phone ? (
+                <a
+                  href={phone.href}
+                  onClick={() => onCall?.(unit)}
+                  className="inline-flex items-center justify-center gap-2 rounded-full bg-cta px-7 py-3 text-sm font-bold text-white no-underline transition hover:bg-cta-hover hover:text-white"
+                >
+                  <Phone size={16} aria-hidden="true" />
+                  Call {phone.display}
+                </a>
+              ) : (
+                <span className="block h-[44px] w-full animate-pulse rounded-full bg-slate-200 lg:w-[240px]" aria-hidden="true" />
+              )}
+              <p className="text-center text-xs text-slate-500 lg:text-right">Parking is rented by phone</p>
+            </div>
+          ) : soldOut && !allowWaitlist ? (
             <span className="flex-1 rounded-full bg-slate-100 px-6 py-3 text-center text-sm font-semibold text-slate-500 lg:flex-none">Currently unavailable</span>
           ) : soldOut ? (
             <button type="button" onClick={() => onSelect(unit, 'rent')} className="flex-1 cursor-pointer rounded-full border-2 border-slate-300 px-6 py-3 text-sm font-bold text-slate-700 transition hover:border-slate-400 hover:bg-slate-50 lg:flex-none">
