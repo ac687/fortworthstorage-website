@@ -293,7 +293,7 @@ export default function App({ host, layer }: { host: HTMLElement; layer: HTMLEle
                 {filterBtn('all', 'All', true)}
                 {present.has('drive-up') && filterBtn('drive-up', 'Drive Up')}
                 {present.has('temperature-controlled') && filterBtn('temperature-controlled', 'Temperature Controlled')}
-                {present.has('parking') && filterBtn('parking', 'Parking')}
+                {present.has('parking') && filterBtn('parking', 'Vehicle Parking')}
               </div>
 
               {loadError && (

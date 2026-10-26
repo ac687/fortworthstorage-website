@@ -164,8 +164,9 @@ export const initialUnitGroups = staticGroups as ApiUnitGroup[]
 
 function categoryOf(unitType: string): Category {
   const t = unitType.toLowerCase()
-  // Every kind of parking (covered, uncovered, enclosed, RV, boat...) is one group.
-  if (t.includes('parking')) return 'parking'
+  // Every kind of vehicle parking is one group: any "parking" type (covered, uncovered, enclosed...)
+  // and RV types such as "RV Storage" (matched as a whole word, so it can't hit inside another word).
+  if (t.includes('parking') || /\brv\b/.test(t)) return 'parking'
   if (t.includes('drive')) return 'drive-up'
   if (t.includes('temperature') || t.includes('climate')) return 'temperature-controlled'
   return 'other'
@@ -352,7 +353,9 @@ export function groupUnitOptions(groups: ApiUnitGroup[]): UnitOption[] {
     const pool = o.tiers.filter((t) => t.available > 0)
     o.fromTier = [...(pool.length ? pool : o.tiers)].sort((a, b) => a.webRate - b.webRate)[0]
   }
-  return options.sort((a, b) => a.sqft - b.sqft || a.category.localeCompare(b.category))
+  // Vehicle parking (parking, RV) goes after all the storage units; each part is ordered by size.
+  const last = (o: UnitOption) => (o.category === 'parking' ? 1 : 0)
+  return options.sort((a, b) => last(a) - last(b) || a.sqft - b.sqft || a.category.localeCompare(b.category))
 }
 
 // A sold-out unit shows its regular price only: no promotion name, discounted price or "then" line.

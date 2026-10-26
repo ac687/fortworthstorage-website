@@ -31,7 +31,7 @@
   // "Temperature Controlled", "Climate-Controlled", "Climate Control"... all count as one kind.
   function category(type) {
     var t = String(type || '').toLowerCase()
-    if (t.indexOf('parking') > -1) return 'parking'
+    if (t.indexOf('parking') > -1 || /\brv\b/.test(t)) return 'parking'
     if (t.indexOf('drive') > -1) return 'drive-up'
     if (t.indexOf('temperature') > -1 || t.indexOf('climate') > -1) return 'temperature-controlled'
     return t
