@@ -289,6 +289,10 @@ a.ct2-big:hover{color:#4b70b5}
 .section_faq-listing.area-page .padding-section-small{padding-top:0;padding-bottom:0}
 .section_faq-listing.area-page .container-large{max-width:960px;margin-left:auto;margin-right:auto}
 .section_faq-listing.area-page .collection-item-faq{padding:11px 20px 18px}
+/* Contact page: keep the email address on one line */
+.ct2-big.ct2-email{white-space:nowrap;word-break:normal;font-size:clamp(13px,1.4vw,17px)}
+@media(max-width:991px){.ct2-big.ct2-email{font-size:17px}}
+@media(max-width:480px){.ct2-big.ct2-email{font-size:clamp(13px,4.2vw,17px)}}
 /* Four "How to Choose" cards: 2 x 2 instead of 3 + 1 */
 .uz-how.uz-how-4{grid-template-columns:repeat(2,minmax(0,1fr))}
 @media(max-width:767px){.uz-how.uz-how-4{grid-template-columns:1fr}}
