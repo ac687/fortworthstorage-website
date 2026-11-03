@@ -283,6 +283,12 @@ a.ct2-big:hover{color:#4b70b5}
  .promo-slider-cms-item{flex:0 0 85%;scroll-snap-align:center}
  .promo-slider-cms-list-area{grid-template-columns:1fr}
 }
+/* FAQ block on size, unit and area pages: same spacing and colour as Tidy Up */
+.section_faq-listing.area-page{background:#f2f5fb;padding:32px 24px}
+.section_faq-listing.area-page > h2{margin:0 auto 40px;text-align:center}
+.section_faq-listing.area-page .padding-section-small{padding-top:0;padding-bottom:0}
+.section_faq-listing.area-page .container-large{max-width:960px;margin-left:auto;margin-right:auto}
+.section_faq-listing.area-page .collection-item-faq{padding:11px 20px 18px}
 /* Home page: Browse by Size strip stands out from the blocks around it */
 .sz-strip.sz-strip-home{background:#dbe3f4;border-top:1px solid #b9c9e6;border-bottom:1px solid #b9c9e6}
 .sz-strip.sz-strip-home .sz-strip-pills a{background:#1f2e4e}
