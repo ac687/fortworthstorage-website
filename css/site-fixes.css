@@ -289,6 +289,9 @@ a.ct2-big:hover{color:#4b70b5}
 .section_faq-listing.area-page .padding-section-small{padding-top:0;padding-bottom:0}
 .section_faq-listing.area-page .container-large{max-width:960px;margin-left:auto;margin-right:auto}
 .section_faq-listing.area-page .collection-item-faq{padding:11px 20px 18px}
+/* Four "How to Choose" cards: 2 x 2 instead of 3 + 1 */
+.uz-how.uz-how-4{grid-template-columns:repeat(2,minmax(0,1fr))}
+@media(max-width:767px){.uz-how.uz-how-4{grid-template-columns:1fr}}
 /* Home page: Browse by Size strip stands out from the blocks around it */
 .sz-strip.sz-strip-home{background:#dbe3f4;border-top:1px solid #b9c9e6;border-bottom:1px solid #b9c9e6}
 .sz-strip.sz-strip-home .sz-strip-pills a{background:#1f2e4e}
