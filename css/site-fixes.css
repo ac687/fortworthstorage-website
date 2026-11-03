@@ -224,6 +224,13 @@ a.ct2-big:hover{color:#4b70b5}
 /* Footer on narrow phones: Contact gets its own row so the email fits and the page no longer scrolls sideways */
 @media(max-width:479px){.footer-grid .footer_link-group.is-responsive-bottom{grid-column:1 / -1}}
 
+/* Very small phones: no sideways scroll (heading size, wrapping links, unit cards, climate cards) */
+@media(max-width:380px){.h1-area-page{font-size:min(48px,11vw)}}
+main p a:not([class]),main li a:not([class]){overflow-wrap:anywhere}
+.uz-wrap .uz-cards:not(.uz-c2):not(.uz-c3){grid-template-columns:repeat(auto-fit,minmax(min(300px,100%),1fr))}
+@media(max-width:479px){.div-block-32{grid-template-columns:minmax(0,1fr)}.div-block-33{margin-left:0;margin-right:0;width:auto;max-width:100%}.div-block-34{grid-template-columns:repeat(3,minmax(0,1fr))}.cc-sizes{max-width:100%}}
+@media(max-width:359px){.div-block-34 [class*='text-block']{padding:10px 7px;font-size:12.5px}}
+
 /* Unit-size pages (ported from Tidy Up) */
 .uz-wrap{max-width:960px;margin:0 auto}
 .uz-figure{margin:22px 0 4px}.uz-figure img{display:block;width:100%;height:auto;border-radius:14px;border:1px solid #dbe3f0}
