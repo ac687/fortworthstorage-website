@@ -269,6 +269,16 @@ a.ct2-big:hover{color:#4b70b5}
 .uz-cta .button-3.uz-ghost{background:#fff;color:#1f2e4e;border:1px solid #1f2e4e}
 @media(max-width:767px){.uz-row.uz-fw{grid-template-columns:1fr 1fr;gap:6px 12px;padding:14px}.uz-row.uz-fw.uz-head{display:none}}
 .nav-units-toggle{color:#4d4d4d;font-weight:500}
+/* Home page: "Our Commitment to You" cards, same look as Tidy Up (3 x 2 grid of white cards) */
+.promo-slider-cms-wrap.w-dyn-list{display:block;overflow:visible;margin:0 auto;max-width:1020px}
+.promo-slider-cms-list.w-dyn-items{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px;align-items:stretch}
+.promo-slider-cms-item.w-dyn-item{background:#fff;border:1px solid #dbe3f0;border-radius:12px;padding:24px;width:auto;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;text-align:center}
+@media(max-width:991px){.promo-slider-cms-list.w-dyn-items{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:767px){.promo-slider-cms-list.w-dyn-items{grid-template-columns:1fr}}
+/* Home page: Browse by Size strip stands out from the blocks around it */
+.sz-strip.sz-strip-home{background:#dbe3f4;border-top:1px solid #b9c9e6;border-bottom:1px solid #b9c9e6}
+.sz-strip.sz-strip-home .sz-strip-pills a{background:#1f2e4e}
+.sz-strip.sz-strip-home .sz-strip-pills a:hover{background:#4b70b5}
 
 
 /* Fort Worth: the Units menu has two columns (all units are drive-up) */
