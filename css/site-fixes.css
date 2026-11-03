@@ -213,6 +213,14 @@ a.ct2-big:hover{color:#4b70b5}
 .promo-slider-cms-item-area img{width:50px;height:50px}
 .promo-slider-cms-item-area .heading-style-h4{margin-bottom:12px}
 
+/* Contact page: the three top cards share one text height so their buttons line up (desktop) */
+@media(min-width:992px){.ct2-cards .ct2-big{min-height:54px}.ct2-cards .ct2-card{display:flex;flex-direction:column}}
+
+/* Contact page: keep the email address on one line */
+.ct2-big.ct2-email{white-space:nowrap;word-break:normal}
+@media(min-width:992px){.ct2-big.ct2-email{font-size:clamp(13px,1.75vw,20px)}}
+@media(max-width:480px){.ct2-big.ct2-email{font-size:clamp(13px,4.6vw,20px)}}
+
 /* Unit-size pages (ported from Tidy Up) */
 .uz-wrap{max-width:960px;margin:0 auto}
 .uz-figure{margin:22px 0 4px}.uz-figure img{display:block;width:100%;height:auto;border-radius:14px;border:1px solid #dbe3f0}
@@ -295,6 +303,8 @@ a.ct2-big:hover{color:#4b70b5}
 @media(max-width:480px){.ct2-big.ct2-email{font-size:clamp(13px,4.2vw,17px)}}
 /* Contact page: the three top cards share one text height so their buttons line up (desktop) */
 @media(min-width:992px){.ct2-cards .ct2-big{min-height:54px}.ct2-cards .ct2-card{display:flex;flex-direction:column}}
+/* Footer on narrow phones: Contact gets its own row so the email fits and the page no longer scrolls sideways */
+@media(max-width:479px){.footer-grid .footer_link-group.is-responsive-bottom{grid-column:1 / -1}}
 /* Four "How to Choose" cards: 2 x 2 instead of 3 + 1 */
 .uz-how.uz-how-4{grid-template-columns:repeat(2,minmax(0,1fr))}
 @media(max-width:767px){.uz-how.uz-how-4{grid-template-columns:1fr}}
