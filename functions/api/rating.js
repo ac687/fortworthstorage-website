@@ -1,5 +1,6 @@
 // Cloudflare Pages Function: GET /api/rating
-// Returns the facility's live Google rating and review count (Places API, new).
+// Returns the facility's live Google rating and review count (Places API, new), plus a
+// ready-made "write a review" link built from GOOGLE_PLACE_ID (no extra Google call).
 //
 // Settings (Cloudflare > Settings > Variables and Secrets):
 //   GOOGLE_PLACES_API_KEY  secret  (restrict the key to "Places API (New)" in Google Cloud)
@@ -23,7 +24,7 @@ export async function onRequestGet({ env, waitUntil }) {
   }
 
   const cache = caches.default
-  const cacheKey = new Request(`https://cache.invalid/rating/${placeId}`)
+  const cacheKey = new Request(`https://cache.invalid/rating-v2/${placeId}`)
   const hit = await cache.match(cacheKey)
   if (hit) return hit
 
@@ -48,7 +49,13 @@ export async function onRequestGet({ env, waitUntil }) {
   }
 
   const out = json(
-    { available: true, rating: p.rating, count: p.userRatingCount, url: typeof p.googleMapsUri === 'string' ? p.googleMapsUri : null },
+    {
+      available: true,
+      rating: p.rating,
+      count: p.userRatingCount,
+      url: typeof p.googleMapsUri === 'string' ? p.googleMapsUri : null,
+      reviewUrl: `https://search.google.com/local/writereview?placeid=${encodeURIComponent(placeId)}`,
+    },
     `public, max-age=${CACHE_SECONDS}`,
   )
   waitUntil?.(cache.put(cacheKey, out.clone()))

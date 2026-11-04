@@ -332,3 +332,45 @@ main p a:not([class]),main li a:not([class]){overflow-wrap:anywhere}
 
 /* Free disc lock pill inside area-page heroes */
 .section_hero-sg-5 .disc-lock-hero{margin-top:14px}
+
+/* Homepage reviews: three static Google review cards under the live rating block */
+.section_testimonials { background: #1f2e4e; padding: 72px 20px; }
+.section_testimonials h2 { color: #fff; }
+.section_testimonials .tu-rating { margin: 20px 0 0; }
+.section_testimonials .tu-rating-score { color: #fff; }
+.section_testimonials .tu-rating-count { color: #dbe3f4; }
+.section_testimonials .tu-rating-divider { background: rgba(255,255,255,.3); }
+.section_testimonials .tu-rating-badge { background: #fff; border-radius: 999px; padding: 5px 13px 5px 9px; }
+.tu-reviews { width: 100%; max-width: 1120px; margin: 40px auto 0; }
+.tu-review-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; list-style: none; margin: 0; padding: 0; }
+.tu-review-grid > li { display: flex; margin: 0; padding: 0; }
+.tu-review { margin: 0; width: 100%; box-sizing: border-box; display: flex; flex-direction: column; gap: 18px; padding: 28px; background: #fff; border: 1px solid #dbe3f4; border-radius: 14px; box-shadow: 0 1px 2px rgba(26,26,26,.04); }
+.tu-review-stars { display: flex; gap: 2px; }
+.tu-review-text { margin: 0; padding: 0; border: 0; background: none; }
+.tu-review-text p { margin: 0; font-size: 17px; line-height: 1.55; color: #2b2f38; }
+.tu-review-who { display: flex; align-items: center; gap: 12px; margin: auto 0 0; padding: 0; border: 0; }
+.tu-review-avatar { flex: none; width: 40px; height: 40px; border-radius: 50%; background: #dbe3f4; color: #344e8b; display: flex; align-items: center; justify-content: center; font: 700 16px/1 "DM Sans", Arial, sans-serif; }
+.tu-review-meta { display: flex; flex-direction: column; gap: 2px; }
+.tu-review-name { font: 600 15px/1.3 "DM Sans", Arial, sans-serif; color: #1a1a1a; }
+.tu-review-src { display: flex; align-items: center; gap: 5px; font-size: 13px; color: #4a5568; }
+.tu-review-links { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 14px 28px; margin-top: 36px; }
+.tu-review-more { font: 600 16px/1.3 "DM Sans", Arial, sans-serif; color: #fff; text-decoration: none; }
+.tu-review-more:hover, .tu-review-more:focus-visible { text-decoration: underline; }
+.tu-review-cta { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 0 22px; border: 1.5px solid #fff; border-radius: 999px; font: 600 15px/1 "DM Sans", Arial, sans-serif; color: #fff; text-decoration: none; transition: background-color .15s ease, color .15s ease; }
+.tu-review-cta:hover, .tu-review-cta:focus-visible { background: #fff; color: #1f2e4e; }
+.tu-review-more:focus-visible, .tu-review-cta:focus-visible { outline: 2px solid #dbe3f4; outline-offset: 3px; }
+@media (max-width: 767px) {
+  .section_testimonials { padding: 44px 0 40px; }
+  .section_testimonials > .padding-0 > .container-full > h2 { padding: 0 20px; }
+  .section_testimonials .tu-rating { padding: 0 20px; }
+  .section_testimonials .tu-rating-divider { display: none; }
+  .tu-reviews { margin-top: 26px; }
+  .tu-review-grid { display: flex; gap: 12px; overflow-x: auto; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; padding: 0 20px 6px; scroll-padding-left: 20px; }
+  .tu-review-grid > li { flex: 0 0 min(310px, 82vw); scroll-snap-align: start; }
+  .tu-review { padding: 22px; gap: 14px; }
+  .tu-review-text p { font-size: 16px; }
+  .tu-review-links { flex-direction: column; align-items: stretch; padding: 0 20px; margin-top: 22px; gap: 12px; }
+  .tu-review-more, .tu-review-cta { min-height: 48px; display: flex; align-items: center; justify-content: center; border-radius: 999px; }
+  .tu-review-more { background: #fff; color: #1f2e4e; font-size: 15px; }
+  .tu-review-more:hover, .tu-review-more:focus-visible { text-decoration: none; background: #dbe3f4; }
+}

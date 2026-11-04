@@ -60,6 +60,13 @@
         }
       }
       paintStars(d.rating)
+
+      // "Leave a review" buttons: point them straight at Google's review box.
+      // If reviewUrl is missing they keep the Maps-listing link already in the HTML.
+      if (d.reviewUrl && /^https:\/\/search\.google\.com\//.test(d.reviewUrl)) {
+        var ctas = document.querySelectorAll('a.tu-review-cta')
+        for (var i = 0; i < ctas.length; i++) ctas[i].href = d.reviewUrl
+      }
     })
     .catch(function () { /* keep the static numbers */ })
 })()
