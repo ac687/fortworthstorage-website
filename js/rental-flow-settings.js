@@ -84,6 +84,8 @@ window.RENTAL_FLOW_SETTINGS = {
       Better: ['**Flexible Month-to-Month Terms**', 'Quick-Access Row Placement', 'Access Hours: 6:00 AM – 10:00 PM', '24/7 Online Account Management'],
       Best: ['**Flexible Month-to-Month Terms**', 'Premium Row Placement', 'Includes 24/7 Gate Access (A $10/mo value included free)', '24/7 Online Account Management'],
     },
+     '10x10 Drive-Up': {
+      Good: ['**3-Month Minimum Commitment**', 'Compact Lane Access (Cars & Pickups)', 'Access Hours: 6:00 AM – 10:00 PM', '24/7 Online Account Management'],
     // Any other unit type uses these.
     default: {
       Good: ['**3-Month Minimum Commitment**', 'Standard Ground-Level Access', 'Access Hours: 6:00 AM – 10:00 PM', '24/7 Online Account Management'],
