@@ -86,6 +86,7 @@ window.RENTAL_FLOW_SETTINGS = {
     },
      '10x10 Drive-Up': {
       Good: ['**3-Month Minimum Commitment**', 'Compact Lane Access (Cars & Pickups)', 'Access Hours: 6:00 AM – 10:00 PM', '24/7 Online Account Management'],
+    },
     // Any other unit type uses these.
     default: {
       Good: ['**3-Month Minimum Commitment**', 'Standard Ground-Level Access', 'Access Hours: 6:00 AM – 10:00 PM', '24/7 Online Account Management'],
