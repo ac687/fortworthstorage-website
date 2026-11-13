@@ -174,7 +174,7 @@ window.RENTAL_FLOW_SETTINGS = {
         only matters for the built-in backup calculation, used if the preview can't be reached.
         All three rules above apply to that backup calculation. */
   estimate: {
-    billingMode: 'first-of-month',
+    billingMode: 'anniversary',
     prepayLastDays: 5,
     fullMonthPromoWords: ['full month'],
   },
