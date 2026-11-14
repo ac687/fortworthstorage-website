@@ -212,10 +212,13 @@ window.RENTAL_FLOW_SETTINGS = {
     panelTitle: '12-month rate lock',
     panelText: 'The rate you start at is the rate you pay for 12 months.',
   },
-  popular: { unit: '', ribbonText: 'Most popular size' },
+  popular: { unit: '10x20 Drive Up', ribbonText: 'Most popular size' },
   priceNote: 'Lowest price shown',
   tagline: 'Rent online in minutes. Move in today.',
-  reviews: [],
+  reviews: [
+    { name: 'Raymond B.', date: 'Oct 2026', text: 'Quick easy process and very polite service.' },
+    { name: 'Scott R.', date: 'Feb 2026', text: 'I find that Fort Worth Storage is a great place to store my belongings. They are always helpful and quick to respond to any issues that I might have. I have been with them for over 10 years.' },
+  ],
   moveInCost: { enabled: true },
 
   /* 10. WHAT FITS (the line under the size on each unit card, and a block beside the estimate on the checkout step)
