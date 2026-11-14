@@ -47,7 +47,7 @@ window.RENTAL_FLOW_SETTINGS = {
     enabled: true,
     barLabel: 'Free disc lock',
     panelTitle: 'Free disc lock, a $20 value',
-    panelText: 'Waiting inside your unit on move-in day, and yours to keep.',
+    panelText: 'Ready in your unit on move-in day, and yours to keep.',
     adminFeeNote: 'Includes a free disc lock, a $20 value',
     popupText: '**Every unit includes a free disc lock**, a $20 value. Waiting inside your unit, yours to keep.',
     popupTextShort: '**Every unit includes a free disc lock**, yours to keep.',

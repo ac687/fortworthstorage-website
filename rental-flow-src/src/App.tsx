@@ -314,12 +314,15 @@ export default function App({ host, layer }: { host: HTMLElement; layer: HTMLEle
                 </label>
               </div>
 
+              {/* One unit type only: the filter would do nothing, so it is hidden. */}
+              {present.size > 1 && (
               <div className="my-4 flex w-fit overflow-hidden rounded-lg border border-navy text-sm font-semibold max-[349px]:grid max-[349px]:w-full max-[349px]:grid-cols-2 max-[349px]:text-center max-[349px]:[&>button:last-child:nth-child(odd)]:col-span-2 max-[349px]:[&>button:nth-child(3)]:border-l-0 max-[349px]:[&>button:nth-child(n+3)]:border-t max-[349px]:[&>button:nth-child(n+3)]:border-navy" role="group" aria-label="Unit type filter">
                 {filterBtn('all', 'All', true)}
                 {present.has('drive-up') && filterBtn('drive-up', 'Drive Up')}
                 {present.has('temperature-controlled') && filterBtn('temperature-controlled', 'Temperature Controlled')}
                 {present.has('parking') && filterBtn('parking', 'Vehicle Parking')}
               </div>
+              )}
 
               {loadError && (
                 <p className="mb-4 rounded-lg bg-amber-50 p-3 text-sm text-amber-800">
