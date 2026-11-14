@@ -133,7 +133,7 @@ export default function EstimateCard({ estimate: e, collapsed, onToggle }: Props
             <p className="mt-1 text-sm text-slate-600">Your promotion may change your later payments. Exact amounts are confirmed in your cart.</p>
           </div>
         )}
-        {e.nextMonthPromo && <NextMonthNote n={e.nextMonthPromo} months={e.promoMonths} />}
+        {e.nextMonthPromo && <NextMonthNote n={e.nextMonthPromo} months={e.promoMonths} anniversary={e.dueDay !== null} />}
         {e.promoRequiresAutopay && <p className="mt-2 text-xs font-semibold text-emerald-800">The promotion requires autopay.</p>}
         <p className="mt-2 text-xs text-slate-500">Estimates only. Taxes and final promotion terms are confirmed on the next step.</p>
       </div>
@@ -161,13 +161,23 @@ function Amount({ now, full }: { now: number; full?: number }) {
 const ordinal = (n: number) => `${n}${['th', 'st', 'nd', 'rd'][n % 100 > 10 && n % 100 < 14 ? 0 : n % 10 < 4 ? n % 10 : 0]}`
 
 // Shown when a first-full-month promotion is not billed today: says where the discount lands.
-function NextMonthNote({ n, months }: { n: NextMonthPromo; months: number | null }) {
+function NextMonthNote({ n, months, anniversary }: { n: NextMonthPromo; months: number | null; anniversary: boolean }) {
   const free = n.rentAfterPromo === 0
   return (
     <div className="mt-2.5 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2.5">
       <p className="text-sm font-semibold text-emerald-800">{n.promoName || 'Promotion'}</p>
       <p className="mt-0.5 text-xs leading-snug text-emerald-800">
-        {free ? (
+        {anniversary ? (
+          free ? (
+            <>
+              Your second payment, billed {n.billedLabel}, is <b>free</b> (normally {money(n.rent).replace('.00', '')}). Today's rent is the regular price.
+            </>
+          ) : (
+            <>
+              Your second payment, billed {n.billedLabel}, is <b>{money(n.rentAfterPromo).replace('.00', '')}</b> instead of {money(n.rent).replace('.00', '')}. Today's rent is the regular price.
+            </>
+          )
+        ) : free ? (
           <>
             Your first full month is {n.monthName}, and its rent is <b>free</b> (normally {money(n.rent).replace('.00', '')}). Nothing is discounted today.
           </>
@@ -176,7 +186,7 @@ function NextMonthNote({ n, months }: { n: NextMonthPromo; months: number | null
             Your first full month is {n.monthName}. Rent for {n.monthName} is <b>{money(n.rentAfterPromo).replace('.00', '')}</b> instead of {money(n.rent).replace('.00', '')}, billed {n.billedLabel}. Nothing is discounted today.
           </>
         )}
-        {months !== null && months >= 2 && ` The discount covers your first ${months} full months.`}
+        {months !== null && months >= 2 && ` The discount covers ${anniversary ? `your next ${months} payments` : `your first ${months} full months`}.`}
       </p>
     </div>
   )

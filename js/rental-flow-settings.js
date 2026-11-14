@@ -31,17 +31,23 @@ window.RENTAL_FLOW_SETTINGS = {
     productionHosts: ['www.storagefortworthtexas.com', 'storagefortworthtexas.com'],
   },
 
-  /* FREE DISC LOCK  (every tenant gets a disc lock inside their unit and keeps it)
-        Shows in three places: a pill on each unit card, a note under "Admin fee" in the "Estimated due today"
-        box, and one line above the tiers in the tier popup. The home page headline pill is in index.html.
-        enabled: false     hides it everywhere in the rental flow.
-        cardLabel          the pill on each unit card.
+  /* FREE DISC LOCK  (ON here: every tenant gets a disc lock to keep. Set enabled: false to hide it everywhere.)
+        When on, it shows in four places: a green "Free disc lock" item in each unit card's price box (phones and
+        tablets; on desktop the side column panel says it instead), the white "Free disc lock" panel in the desktop
+        side column, a note under "Admin fee" in the "What's due today?" box, and one line above the tiers in the
+        tier popup. The home page headline pill is NOT part of this: it is plain HTML in index.html and has to be
+        added there separately.
+        enabled: true      turns it on, false hides it everywhere in the rental flow.
+        barLabel           the item in each unit card's price box.
+        panelTitle         heading of the side column panel; panelText the line under it.
         adminFeeNote       the small line under "Admin fee" in the estimate (use '' for no note).
         popupText          the line above the tiers on desktop; popupTextShort on phones and tablets.
                            **Double asterisks** make words bold. */
   discLock: {
     enabled: true,
-    cardLabel: 'Free disc lock included',
+    barLabel: 'Free disc lock',
+    panelTitle: 'Free disc lock, a $20 value',
+    panelText: 'Waiting inside your unit on move-in day, and yours to keep.',
     adminFeeNote: 'Includes a free disc lock, a $20 value',
     popupText: '**Every unit includes a free disc lock**, a $20 value. Waiting inside your unit, yours to keep.',
     popupTextShort: '**Every unit includes a free disc lock**, yours to keep.',
@@ -176,30 +182,69 @@ window.RENTAL_FLOW_SETTINGS = {
   estimate: {
     billingMode: 'anniversary',
     prepayLastDays: 5,
-    fullMonthPromoWords: ['full month'],
+    fullMonthPromoWords: ['full month', 'second month', '2nd month'],
   },
 
-  /* 10. WHAT FITS (desktop, beside the estimate on the checkout step)
-         One entry per size ("WIDTHxDEPTH"): a one-line summary and a short list of what fits.
+  /* 9b. UNIT CARDS (the list of available units)
+        showStreetRate  true shows the in-store rate crossed out next to the online price, with "Online price: X% off",
+                    on units with no promotion (only when the in-store rate is higher than the online rate). false hides it.
+        rateLock    enabled: true shows "Rate locked 12 months" at the bottom of every unit's price box and a navy
+                    "12-month rate lock" panel in the desktop side column. text: the wording in the price box.
+                    panelTitle and panelText: the wording in the side column panel. Turn it on only if it is true at this
+                    facility, including the rent after a promotion ends. false hides all of it.
+        popular     unit: the ONE unit that gets the "Most popular size" ribbon and a navy border, size plus type,
+                    e.g. '10x10 Drive Up' or '10x10 Temperature Controlled' ('' = none). Hidden if that unit is sold out.
+                    ribbonText: the words on the ribbon.
+        priceNote   a small gray note in the price box's bottom bar, shown only on sizes that have more than one tier
+                    (the prices shown are the lowest ones). It replaces the word "from" before prices. '' hides it.
+        tagline     the line under "Available units".
+        reviews     desktop side column: up to three short Google reviews (name, date, text). The rating and review count
+                    come live from Google. Use recent, short reviews. No staff names. No claims of 24-hour access.
+                    Keep them different from the reviews lower on the page.
+        moveInCost  enabled: true adds a "What's due today?" link to each unit card. It opens a popup (a bottom sheet
+                    on phones) built from Monument's cart preview, with the built-in estimate as backup.
+                    It is always labelled an estimate: taxes and the final total are calculated at checkout.
+        The line under each unit's size ("About a standard closet") is "line" in the WHAT FITS block below. */
+  showStreetRate: true,
+  rateLock: {
+    enabled: true,
+    text: 'Rate locked 12 months',
+    panelTitle: '12-month rate lock',
+    panelText: 'The rate you start at is the rate you pay for 12 months.',
+  },
+  popular: { unit: '', ribbonText: 'Most popular size' },
+  priceNote: 'Lowest price shown',
+  tagline: 'Rent online in minutes. Move in today.',
+  reviews: [],
+  moveInCost: { enabled: true },
+
+  /* 10. WHAT FITS (the line under the size on each unit card, and a block beside the estimate on the checkout step)
+         One entry per size ("WIDTHxDEPTH"): line = the short line under the size on the unit card; summary = a one-line
+         summary and fits = a short list of what fits (both shown beside the estimate on desktop).
          Sizes with no entry show nothing. Keep each item short. */
   sizeInfo: {
     '10x10': {
+      line: 'Fits a 1-bedroom apartment',
       summary: '100 sq ft, about the size of a standard bedroom.',
       fits: ['Contents of a 1 to 2 bedroom apartment', 'Living room furniture', 'Bedroom sets', '20 to 30 boxes'],
     },
     '10x20': {
+      line: 'One-car garage size, fits a 3-bedroom home',
       summary: '200 sq ft, about the size of a one-car garage.',
       fits: ['Contents of a 3 to 4 bedroom home', 'Motorcycles, ATVs, and small boats', 'Contractor tools and equipment', 'Business inventory'],
     },
     '10x30': {
+      line: 'Two-car garage size, fits a 5-bedroom home',
       summary: '300 sq ft, about the size of a two-car garage.',
       fits: ['Contents of a large 4 to 5 bedroom home', 'Multiple full-size vehicles or trucks', 'Large boats, RVs, or campers (check dimensions)', 'Business or commercial inventory'],
     },
     '20x20': {
+      line: 'Large two-car garage size',
       summary: '400 sq ft, about the size of a large two-car garage.',
       fits: ['Contents of a large 4 to 5 bedroom home plus garage', 'Multiple full-size vehicles side by side', 'Full business inventory or retail overstock', 'Contractor materials, trailers, and large equipment'],
     },
     '20x30': {
+      line: 'Our largest unit, fits a very large home',
       summary: '600 sq ft, our largest unit.',
       fits: ['Contents of a very large home plus detached garage', 'Multiple full-size vehicles, trucks, or work vans', 'Complete business or commercial inventory', 'Oversized items, trailers, and bulk materials'],
     },

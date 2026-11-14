@@ -1,4 +1,4 @@
-// Divider band between the page hero and the rental flow. Deliberately has no
+// Heading band for the checkout step ("Complete your rental"). The unit list has no band. Deliberately has no
 // step numbers or progress language: Monument's iframe shows its own stepper.
 export default function SectionBand({ checkout }: { checkout: boolean }) {
   return (

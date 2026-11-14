@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
-import { ChevronLeft, ChevronRight, Lock, LockOpen, Phone, Star } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Phone, Star } from 'lucide-react'
 import { config } from '../config'
-import { formatWindow, isOpenNow } from '../lib/hours'
+import { formatWindow } from '../lib/hours'
 import type { FacilityInfo, Rating } from '../lib/units'
 
 // A grey placeholder bar, shown while the facility's name/address/phone load from
@@ -19,13 +19,6 @@ export default function FacilityHeader({ info = {}, infoReady = true, phoneReady
   const shownRating = rating === undefined ? { rating: f.rating, count: f.reviewCount, url: null } : rating
   // Google shows one decimal, e.g. 4.8.
   const fmt = (n: number) => (Number.isInteger(n) ? n.toFixed(1) : String(n))
-  // Re-check the gate status every 30 seconds so the pill flips on its own.
-  const [now, setNow] = useState(() => new Date())
-  useEffect(() => {
-    const t = setInterval(() => setNow(new Date()), 30_000)
-    return () => clearInterval(t)
-  }, [])
-  const gateOpen = isOpenNow(now, f.timeZone, f.gateHours)
   const [i, setI] = useState(0)
   // Photos after the first wait until the first has loaded, so they don't compete with it
   // on slow connections. A failed first photo, or a tap on the arrows, releases them too.
@@ -53,7 +46,7 @@ export default function FacilityHeader({ info = {}, infoReady = true, phoneReady
 
   return (
     <section className="mb-6 overflow-hidden rounded-2xl border border-slate-200 bg-white">
-      <div className="grid md:min-h-[320px] md:grid-cols-[1.25fr_1fr]">
+      <div className="grid md:grid-cols-[1.25fr_1fr]">
         <div className="relative h-56 touch-pan-y overflow-hidden bg-brand-50 sm:h-72 md:h-auto" onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
           {f.photos.map((p, n) => (
             <img
@@ -83,7 +76,7 @@ export default function FacilityHeader({ info = {}, infoReady = true, phoneReady
           )}
         </div>
 
-        <div className="flex flex-col gap-4 p-6">
+        <div className="flex flex-col gap-2.5 px-5 py-[18px]">
           <div>
             {infoReady ? <p className="text-xs font-bold uppercase tracking-wider text-slate-500">{f.name}</p> : <Bar w="w-32" h="h-3" />}
             <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1">
@@ -116,19 +109,9 @@ export default function FacilityHeader({ info = {}, infoReady = true, phoneReady
               <span className="mt-2 block"><Bar w="w-28" /></span>
             )}
           </div>
-          <div className="grid gap-3 border-y border-slate-200 py-3 text-sm">
+          <div className="grid gap-3 border-y border-slate-200 py-2.5 text-sm sm:grid-cols-2">
             <div>
-              <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-                <h3 className="font-semibold text-navy">Gate Access Hours</h3>
-                <span
-                  className={`inline-flex items-center gap-1.5 rounded-full border py-0.5 pl-2 pr-2.5 text-[13px] font-semibold ${
-                    gateOpen ? 'border-green-300 bg-green-50 text-green-800' : 'border-red-300 bg-red-50 text-red-800'
-                  }`}
-                >
-                  {gateOpen ? <LockOpen size={15} aria-hidden="true" /> : <Lock size={15} aria-hidden="true" />}
-                  {gateOpen ? 'Open Now' : 'Closed'}
-                </span>
-              </div>
+              <h3 className="font-semibold text-navy">Gate Access Hours</h3>
               <p className="text-slate-600">{formatWindow(f.gateHours)}</p>
             </div>
             <div>
@@ -137,8 +120,8 @@ export default function FacilityHeader({ info = {}, infoReady = true, phoneReady
             </div>
           </div>
           <div>
-            <h3 className="mb-3 text-sm font-bold text-navy">Amenities</h3>
-            <ul className="grid grid-cols-2 gap-x-6 gap-y-3 text-sm text-slate-600">
+            <h3 className="mb-1.5 text-sm font-bold text-navy">Amenities</h3>
+            <ul className="grid grid-cols-2 gap-x-6 gap-y-1.5 text-sm text-slate-600">
               {f.amenities.map((a) => (
                 <li key={a}>{a}</li>
               ))}

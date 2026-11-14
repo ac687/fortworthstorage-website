@@ -7,8 +7,8 @@ export const config = {
     cityLine: 'Fort Worth, TX 76111',
     phoneDisplay: '(817) 838-6781',
     phoneHref: 'tel:+18178386781',
-    rating: 4.7,
-    reviewCount: 26,
+    rating: 4.8,
+    reviewCount: 41,
     // Hours are 24-hour HH:MM, read in the facility's own time zone (IANA name).
     timeZone: 'America/Chicago',
     gateHours: { open: '06:00', close: '22:00' },
@@ -87,21 +87,49 @@ export const config = {
     prepayLastDays: 5,
     // A promotion whose name contains one of these phrases starts at the first FULL month, so the
     // prorated move-in month is not discounted. Case does not matter. Can also be set in /js/rental-flow-settings.js.
-    fullMonthPromoWords: ['full month'] as string[],
+    fullMonthPromoWords: ['full month', 'second month', '2nd month'] as string[],
   },
 
+  // "Rate locked" item at the bottom of every unit card's price box, and the navy rate lock panel in the side column.
+  // Turn it on only if it is true for this facility, including the rent after a promotion ends.
+  // Set in /js/rental-flow-settings.js (rateLock).
+  rateLock: {
+    enabled: false,
+    text: 'Rate locked 12 months',
+    panelTitle: '12-month rate lock',
+    panelText: 'The rate you start at is the rate you pay for 12 months.',
+  },
+  // Small gray note in the price box's bottom bar on any size that has more than one tier, because the prices shown are the lowest ones.
+  // Empty hides it. Set in /js/rental-flow-settings.js (priceNote).
+  priceNote: 'Lowest price shown',
+  // Units with no promotion: show the in-store rate crossed out next to the online price ("Online price: X% off").
+  // Only shown when the in-store rate is higher than the online rate. Set in /js/rental-flow-settings.js (showStreetRate).
+  showStreetRate: true,
+  // The one unit that carries the "Most popular size" ribbon. unit = size + type, e.g. '10x10 Drive Up' (empty = none).
+  // Set in /js/rental-flow-settings.js (popular: {...}).
+  popular: { unit: '', ribbonText: 'Most popular size' },
+  // The line under "Available units". Set in /js/rental-flow-settings.js (tagline).
+  tagline: 'Rent online in minutes. Move in today.',
+  // Desktop side column: two review quotes (settings file: reviews). Rating and count come live from Google.
+  reviews: [] as { name: string; date: string; text: string }[],
+  // "What's due today?" link on each unit card (popup on desktop, bottom sheet on phones).
+  moveInCost: { enabled: false },
+
   // "What fits" block beside the estimate on desktop, typed in /js/rental-flow-settings.js.
-  // Key = size ("5x5"). summary is one short line; fits is a short list.
-  sizeInfo: {} as Record<string, { summary: string; fits: string[] }>,
+  // Key = size ("5x5"). line is the short line under the size on the unit card; summary is one short line; fits is a short list.
+  sizeInfo: {} as Record<string, { summary: string; fits: string[]; line: string }>,
   sizeGuidePath: '/size-guide',
 
   // Free disc lock this facility gives every tenant. Off by default; a site turns it on, and can change
-  // every word, in /js/rental-flow-settings.js (discLock: {...}). Shown as a pill on each unit card, a
-  // note under "Admin fee" in the "Estimated due today" box, and one line above the tiers in the tier popup.
+  // every word, in /js/rental-flow-settings.js (discLock: {...}). Shown as a green item in the unit card's price box
+  // (phones and tablets; on desktop the side column panel says it instead), a note under "Admin fee" in the
+  // "What's due today?" box, and one line above the tiers in the tier popup.
   // In the popup text, **double asterisks** make the words bold.
   discLock: {
     enabled: false,
-    cardLabel: 'Free disc lock included', // pill on each unit card
+    barLabel: 'Free disc lock', // item in the unit card's price box
+    panelTitle: 'Free disc lock, a $20 value', // side column panel
+    panelText: 'Waiting inside your unit on move-in day, and yours to keep.',
     adminFeeNote: 'Includes a free disc lock, a $20 value', // small line under "Admin fee" in the estimate; empty hides it
     popupText: '**Every unit includes a free disc lock**, a $20 value. Waiting inside your unit, yours to keep.', // tier popup, desktop
     popupTextShort: '**Every unit includes a free disc lock**, yours to keep.', // tier popup on phones and tablets

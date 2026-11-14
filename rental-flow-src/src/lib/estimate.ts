@@ -125,7 +125,8 @@ export function moveInEstimate(tier: Tier, now = new Date()): Estimate {
   const rentCents = share(Math.round(tier.webRate * 100))
   // The promotion starts right away, so it discounts this month's prorated rent (payment 1).
   const monthDiscountCents = tier.promoRate !== null ? Math.max(0, Math.round((tier.webRate - tier.promoRate) * 100)) : 0
-  const firstFull = !anniversary && tier.promoFirstFullMonth && tier.promoRate !== null
+  // Under anniversary billing the same flag means the promotion starts with the SECOND payment (e.g. Second Month Free).
+  const firstFull = tier.promoFirstFullMonth && tier.promoRate !== null
   // A first-full-month promotion does not touch the prorated move-in month.
   const discountCents = firstFull ? 0 : Math.min(rentCents, share(monthDiscountCents))
   const protectionMonthlyCents = Math.round(config.estimate.protectionMonthly * 100)
@@ -185,7 +186,7 @@ export function moveInEstimate(tier: Tier, now = new Date()): Estimate {
         ? {
             promoName: tier.promoName,
             monthName: monthLong(nextYear, nextMonth),
-            billedLabel: `${monthShort(nextYear, nextMonth)} 1`,
+            billedLabel: `${monthShort(nextYear, nextMonth)} ${anniversary ? Math.min(day, nextDays) : 1}`,
             rent: tier.webRate,
             rentAfterPromo: Math.max(0, Math.round(tier.webRate * 100 - monthDiscountCents)) / 100,
           }

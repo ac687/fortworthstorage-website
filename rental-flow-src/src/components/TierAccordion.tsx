@@ -1,3 +1,4 @@
+import { config } from '../config'
 import { useState } from 'react'
 import { Check } from 'lucide-react'
 import type { Tier, UnitOption } from '../lib/units'
@@ -123,7 +124,7 @@ export default function TierAccordion({ unit, mode, allowWaitlist, onChoose }: P
                   )}
                   {promo && tier.promoFirstFullMonth && (
                     <p className="mt-2.5 border-t border-slate-200 pt-2.5 text-xs text-slate-500">
-                      Move-in month is prorated at the regular rate.
+                      {config.estimate.billingMode === 'anniversary' ? 'Your first month is billed at the regular rate.' : 'Move-in month is prorated at the regular rate.'}
                     </p>
                   )}
                 </div>

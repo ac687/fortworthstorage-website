@@ -13,10 +13,19 @@ export type SiteSettings = {
   hideWhenOtherTiersSoldOut?: string[]
   typeBullets?: Record<string, string[]>
   estimate?: { billingMode?: string; prepayLastDays?: number; fullMonthPromoWords?: string[] }
-  sizeInfo?: Record<string, { summary?: string; fits?: string[] }>
+  showStreetRate?: boolean
+  rateLock?: { enabled?: boolean; text?: string; panelTitle?: string; panelText?: string }
+  popular?: { unit?: string; ribbonText?: string }
+  tagline?: string
+  priceNote?: string
+  reviews?: { name?: string; date?: string; text?: string }[]
+  moveInCost?: { enabled?: boolean }
+  sizeInfo?: Record<string, { line?: string; summary?: string; fits?: string[] }>
   discLock?: {
     enabled?: boolean
-    cardLabel?: string
+    barLabel?: string
+    panelTitle?: string
+    panelText?: string
     adminFeeNote?: string
     popupText?: string
     popupTextShort?: string
@@ -164,15 +173,50 @@ export function applySettings(raw: unknown = window.RENTAL_FLOW_SETTINGS): Recor
     if (words.length) config.estimate.fullMonthPromoWords = words
   }
 
+  if (typeof s.showStreetRate === 'boolean') config.showStreetRate = s.showStreetRate
+  const rl = obj(s.rateLock)
+  if (rl) {
+    if (typeof rl.enabled === 'boolean') config.rateLock.enabled = rl.enabled
+    const t = str(rl.text, 60)
+    if (t) config.rateLock.text = t
+    const pt = str(rl.panelTitle, 60)
+    const pp = str(rl.panelText, 160)
+    if (pt) config.rateLock.panelTitle = pt
+    if (pp) config.rateLock.panelText = pp
+  }
+  const pop = obj(s.popular)
+  if (pop) {
+    if (typeof pop.unit === 'string' && pop.unit.length <= 60) config.popular.unit = pop.unit.trim()
+    const rt = str(pop.ribbonText, 30)
+    if (rt) config.popular.ribbonText = rt
+  }
+  if (typeof s.priceNote === 'string' && s.priceNote.length <= 40) config.priceNote = s.priceNote.trim()
+  const tg = str(s.tagline, 80)
+  if (tg) config.tagline = tg
+  if (Array.isArray(s.reviews)) {
+    config.reviews = s.reviews
+      .map((r) => {
+        const o = obj(r)
+        const name = o && str(o.name, 40)
+        const text = o && str(o.text, 220)
+        return name && text ? { name, date: (o && str(o.date, 30)) || '', text } : null
+      })
+      .filter((r): r is { name: string; date: string; text: string } => !!r)
+      .slice(0, 3)
+  }
+  const mc = obj(s.moveInCost)
+  if (mc && typeof mc.enabled === 'boolean') config.moveInCost.enabled = mc.enabled
+
   const si = obj(s.sizeInfo)
   if (si) {
-    const map: Record<string, { summary: string; fits: string[] }> = {}
+    const map: Record<string, { summary: string; fits: string[]; line: string }> = {}
     for (const [size, v] of Object.entries(si)) {
       const o = obj(v)
       if (!o || !/^\d+x\d+$/.test(size)) continue
+      const line = str(o.line, 80)
       const summary = str(o.summary, 160)
       const fits = Array.isArray(o.fits) ? o.fits.map((f) => str(f, 80)).filter((f): f is string => !!f).slice(0, 6) : []
-      if (summary || fits.length) map[size] = { summary: summary ?? '', fits }
+      if (line || summary || fits.length) map[size] = { line: line ?? '', summary: summary ?? '', fits }
     }
     config.sizeInfo = map
   }
@@ -180,10 +224,14 @@ export function applySettings(raw: unknown = window.RENTAL_FLOW_SETTINGS): Recor
   const dl = obj(s.discLock)
   if (dl) {
     if (typeof dl.enabled === 'boolean') config.discLock.enabled = dl.enabled
-    const label = str(dl.cardLabel, 60)
+    const bar = str(dl.barLabel, 40)
+    const panelTitle = str(dl.panelTitle, 60)
+    const panelText = str(dl.panelText, 160)
     const popup = str(dl.popupText, 240)
     const popupShort = str(dl.popupTextShort, 160)
-    if (label) config.discLock.cardLabel = label
+    if (bar) config.discLock.barLabel = bar
+    if (panelTitle) config.discLock.panelTitle = panelTitle
+    if (panelText) config.discLock.panelText = panelText
     // The note may be emptied on purpose to hide it.
     if (typeof dl.adminFeeNote === 'string' && dl.adminFeeNote.length <= 120) config.discLock.adminFeeNote = dl.adminFeeNote.trim()
     if (popup) config.discLock.popupText = popup

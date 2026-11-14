@@ -42,14 +42,18 @@ lives only in Cloudflare as a secret, never in this repo.
 Edit this one file to customize a website: tier popup amenity bullets (`tierAmenities`), hours, amenities, photos, unit-card photos,
 tier wording, Monument checkout branding, backup facility details and colors. No rebuild
 is needed. Invalid or missing values are ignored and defaults are used.
+
+The unit cards have one style. Their wording and options are in the `9b. UNIT CARDS` and `10. WHAT FITS` blocks of the settings file:
+`popular` (the one "Most popular size" unit), `rateLock`, `discLock` (free disc lock), `showStreetRate`, `tagline`, `reviews`
+(two quotes for the desktop side column), `moveInCost` (the "What's due today?" link) and a `line` per size under `sizeInfo`.
 Which facility is shown is set in Cloudflare (`MONUMENT_FACILITY_UUID`, `MONUMENT_ENV`,
 `GOOGLE_PLACE_ID`), not in this file. For a new site, copy the file and change the values.
 
 ## Promotions that start at the first full month
 A promotion named like "50% off first full month" or "First full month free" does not discount the prorated move-in month.
 The cart estimate shows the discount on next month's rent (as a note, or on the prepaid line in the last days of the month).
-The phrases that trigger this are `estimate.fullMonthPromoWords` in `/js/rental-flow-settings.js` (default `['full month']`).
-Unit cards say "First full month" / "Regular rate", and a $0 promo price shows as "Free".
+The phrases that trigger this are `estimate.fullMonthPromoWords` in `/js/rental-flow-settings.js` (default `['full month', 'second month', '2nd month']`).
+With anniversary billing, a promotion that starts with the second payment (for example "Second Month Free") shows "Month 2" under the promo price and "Months 1 and 3+" under the regular rent.
 
 ## Promotion rules from Monument
 `/api/units` returns each unit group with its own best auto-applied promotion, plus that promotion's rules in

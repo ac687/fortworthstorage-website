@@ -9,9 +9,9 @@
   --color-brand-dark: #344e8b;
   --color-brand-50: #f2f5fb;
   --color-brand-100: #dbe3f4;
-  /* Call-to-action buttons. Change these two to restyle every CTA. */
-  --color-cta: #4b70b5;
-  --color-cta-hover: #344e8b;
+  /* Call-to-action buttons (Rent now everywhere in the flow). Change these two to restyle every CTA. */
+  --color-cta: #c2410c;
+  --color-cta-hover: #9a3412;
 }
 
 /* The flow renders inside a shadow root, so the Webflow styles can't reach in
@@ -26,4 +26,15 @@
   color: var(--color-slate-900);
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
+}
+
+@keyframes tu-sheet-up {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+.tu-sheet-up { animation: tu-sheet-up 0.22s ease-out; }
+
+/* Free disc lock item in a unit card's price box: on desktop the side column panel says it, so the card drops it. */
+@media (min-width: 1180px) {
+  .tu-free-lock { display: none; }
 }

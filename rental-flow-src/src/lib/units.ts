@@ -231,6 +231,15 @@ export function startsAtFirstFullMonth(name: string): boolean {
 // Wording for the promo price and the regular price, shared by the unit card and the checkout header.
 export function promoLabels(tier: Tier): { promo: string; after: string; sentence: string } {
   const n = tier.promoMonths
+  if (tier.promoFirstFullMonth && config.estimate.billingMode === 'anniversary') {
+    // Anniversary billing: month 1 is regular, the promotion starts with the second payment.
+    const last = n === null ? null : n + 1
+    return {
+      promo: n === null ? 'Promo price' : n === 1 ? 'Month 2' : `Months 2–${last}`,
+      after: n === null ? 'Regular rate' : `Months 1 and ${last! + 1}+`,
+      sentence: n === null ? 'promo price, then' : n === 1 ? 'for month 2, then' : `for months 2–${last}, then`,
+    }
+  }
   if (tier.promoFirstFullMonth) {
     const sentence = n === null || n === 1 ? 'for your first full month, then' : `for your first ${n} full months, then`
     return { promo: n === null || n === 1 ? 'First full month' : `First ${n} full months`, after: 'Regular rate', sentence }
@@ -240,6 +249,20 @@ export function promoLabels(tier: Tier): { promo: string; after: string; sentenc
     after: n === null ? 'Regular rate' : n === 1 ? 'Month 2+' : `Month ${n + 1}+`,
     sentence: n === null ? 'promo price, then' : n === 1 ? 'for month 1, then' : `for months 1–${n}, then`,
   }
+}
+
+// Wording for the unit card's price box: the label under the promo price and under the regular rent, and the
+// total saved. Handles promotions that start with the first payment and (anniversary billing) with the second.
+export function cardLabels(tier: Tier): { promoMonth: string; rentMonth: string; save: number | null } {
+  const n = tier.promoMonths
+  const per = tier.promoRate !== null ? Math.max(0, tier.webRate - tier.promoRate) : 0
+  const anniversaryLate = tier.promoFirstFullMonth && config.estimate.billingMode === 'anniversary'
+  const first = anniversaryLate ? 2 : 1
+  const last = n === null ? null : first + n - 1
+  const promoMonth =
+    n === null ? 'Promo price' : n === 1 ? `Month ${first}` : first === 1 && n === 2 ? 'Months 1 and 2' : `Months ${first} to ${last}`
+  const rentMonth = n === null ? 'Regular rate' : anniversaryLate ? `Months 1 and ${last! + 1}+` : `Month ${last! + 1} onward`
+  return { promoMonth, rentMonth, save: n === null ? null : per * n }
 }
 
 const isNum = (v: unknown): v is number => typeof v === 'number' && Number.isFinite(v)
@@ -379,6 +402,13 @@ export function typeLabel(category: Category, unitType: string) {
   return unitType // parking and other types keep Monument's own name
 }
 
+// The short line under the size on a unit card.
+export function typeLine(category: Category, unitType: string) {
+  if (category === 'drive-up') return 'Outdoor, drive up to your door'
+  if (category === 'temperature-controlled') return 'Indoor, heated and cooled'
+  return unitType || 'Self storage'
+}
+
 export function accessLabel(category: Category, unitType = '') {
   if (category === 'drive-up') return 'Drive Up Access'
   if (category === 'temperature-controlled') return 'Hallway Access'
@@ -391,4 +421,15 @@ export function pushEvent(event: string, data: Record<string, unknown> = {}) {
   w.dataLayer = w.dataLayer || []
   w.dataLayer.push({ event, ...data })
   trackOwnEvent(event, data)
+}
+
+// True when this unit is the one picked as the "most popular size" in the site settings (popular.unit, e.g. "10x10 Drive Up").
+export function isPopular(unit: UnitOption): boolean {
+  const want = config.popular.unit.toLowerCase().replace(/[^a-z0-9]/g, '')
+  if (!want) return false
+  const type = unit.category === 'temperature-controlled' ? 'temperaturecontrolled' : unit.category === 'drive-up' ? 'driveup' : unit.unitType.toLowerCase().replace(/[^a-z0-9]/g, '')
+  const have = `${unit.size}${type}`.replace(/[^a-z0-9]/g, '')
+  if (have === want) return true
+  // "Temp" is accepted for temperature controlled.
+  return unit.category === 'temperature-controlled' && want === `${unit.size}temp`.replace(/[^a-z0-9]/g, '')
 }

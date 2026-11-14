@@ -77,7 +77,7 @@ export function estimateFromCart(items: CartItem[], tier: Tier): Estimate | null
   const taxCents = sum(items.map((i) => i.taxAmountInPennies))
 
   const monthDiscountCents = tier.promoRate !== null ? Math.max(0, Math.round((tier.webRate - tier.promoRate) * 100)) : 0
-  const firstFull = !anniversary && tier.promoFirstFullMonth && tier.promoRate !== null && rentDiscount === 0
+  const firstFull = tier.promoFirstFullMonth && tier.promoRate !== null && rentDiscount === 0
   const mon = monthShort(year, month)
 
   let prepay: Prepay | null = null
@@ -105,7 +105,7 @@ export function estimateFromCart(items: CartItem[], tier: Tier): Estimate | null
       ? {
           promoName: tier.promoName,
           monthName: monthLong(nextYear, nextMonth),
-          billedLabel: `${monthShort(nextYear, nextMonth)} 1`,
+          billedLabel: `${monthShort(nextYear, nextMonth)} ${anniversary ? Math.min(day, new Date(Date.UTC(nextYear, nextMonth, 0)).getUTCDate()) : 1}`,
           rent: tier.webRate,
           rentAfterPromo: Math.max(0, Math.round(tier.webRate * 100 - monthDiscountCents)) / 100,
         }

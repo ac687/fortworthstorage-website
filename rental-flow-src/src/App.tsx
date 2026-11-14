@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { ChevronDown } from 'lucide-react'
+import SideColumn from './components/SideColumn'
 import type { CheckoutMode } from './config'
 import { config, monumentUnitsUrl, setRuntimeFacility } from './config'
 import type { Category, FacilityInfo, Policy, Rating, Tier, UnitOption } from './lib/units'
-import { cityState, facilityFromGroups, groupUnitOptions, initialUnitGroups, loadFacilityDetails, loadRating, loadUnitGroups, pushEvent } from './lib/units'
+import { cityState, facilityFromGroups, groupUnitOptions, initialUnitGroups, isPopular, loadFacilityDetails, loadRating, loadUnitGroups, pushEvent } from './lib/units'
 import SectionBand from './components/SectionBand'
 import FacilityHeader from './components/FacilityHeader'
 import UnitCard from './components/UnitCard'
@@ -46,13 +47,13 @@ export default function App({ host, layer }: { host: HTMLElement; layer: HTMLEle
   )
   const [loadError, setLoadError] = useState(false)
   const [policy, setPolicy] = useState<Policy>({})
-  // With live data, the facility's name/address/phone stay as placeholders until
-  // Monument answers (or the request fails), so no saved details flash first.
+  // The facility's name, address and phone from the settings file show straight away, and Monument's
+  // details replace them if they differ. (Keep the settings file in step with Monument.)
   const live = config.dataSource === 'api'
-  const [infoReady, setInfoReady] = useState(!live)
+  const [infoReady, setInfoReady] = useState(true)
   // Google rating: from the saved details when static; live from Google when 'api' (hidden until loaded).
   const [rating, setRating] = useState<Rating | null | undefined>(live ? null : undefined)
-  const [phoneReady, setPhoneReady] = useState(!live)
+  const [phoneReady, setPhoneReady] = useState(true)
   const [apiFacility, setApiFacility] = useState<Partial<FacilityInfo>>({})
   const [filter, setFilter] = useState<Filter>('all')
   const [sort, setSort] = useState<Sort>('size')
@@ -129,10 +130,18 @@ export default function App({ host, layer }: { host: HTMLElement; layer: HTMLEle
   )
 
   const openUnit = useCallback(
-    (unit: UnitOption, mode: 'rent' | 'reserve') => {
+    (unit: UnitOption, mode: 'rent' | 'reserve', position?: number) => {
       // Vehicle parking is rented by phone, so it never opens a checkout.
       if (unit.category === 'parking') return
-      pushEvent('select_unit', { unit_size: unit.size, unit_type: unit.unitType, rental_mode: mode, units_left: unit.totalAvailable })
+      pushEvent('select_unit', {
+        unit_size: unit.size,
+        unit_type: unit.unitType,
+        rental_mode: mode,
+        units_left: unit.totalAvailable,
+        promo: unit.totalAvailable > 0 ? unit.fromTier.promoName ?? 'none' : 'none',
+        popular: isPopular(unit),
+        position,
+      })
       // Reserve goes straight to the lowest tier that has space, with no popup.
       if (mode === 'reserve') {
         const lowest = [...unit.tiers].filter((t) => t.available > 0).sort((a, b) => a.rank - b.rank || a.webRate - b.webRate)[0]
@@ -265,8 +274,9 @@ export default function App({ host, layer }: { host: HTMLElement; layer: HTMLEle
   )
 
   return (
-    <div className="tu-root bg-slate-50">
-      <SectionBand checkout={!!selection} />
+    <div className={`tu-root bg-slate-50 ${selection ? '' : 'border-t border-slate-200 shadow-[inset_0_10px_14px_-12px_rgba(15,23,42,0.18)]'}`}>
+      {/* The unit list has no band: the page intro above it ends in a soft edge instead. The checkout step keeps its heading. */}
+      {selection && <SectionBand checkout />}
       <div className="mx-auto max-w-[1220px] px-3 py-5 lg:px-4">
         {selection ? (
           <CheckoutPanel
@@ -283,9 +293,12 @@ export default function App({ host, layer }: { host: HTMLElement; layer: HTMLEle
             <FacilityHeader info={apiFacility} infoReady={infoReady} phoneReady={phoneReady} rating={rating} />
             <section aria-labelledby="tu-units-heading">
               <div className="flex flex-col gap-3 border-b border-slate-200 pb-3 sm:flex-row sm:items-center sm:justify-between">
-                <h2 id="tu-units-heading" className="font-display text-xl font-bold text-navy sm:text-2xl">
-                  Rent Self Storage Units{infoReady ? ` in ${cityState(apiFacility.cityLine ?? config.facility.cityLine)}` : ''}
-                </h2>
+                <div>
+                  <h2 id="tu-units-heading" className="font-display text-xl font-bold text-navy sm:text-2xl">
+                    Rent Self Storage Units{infoReady ? ` in ${cityState(apiFacility.cityLine ?? config.facility.cityLine)}` : ''}
+                  </h2>
+                  {config.tagline && <p className="mt-0.5 text-sm text-[#475569]">{config.tagline}</p>}
+                </div>
                 <label className="relative inline-flex w-fit items-center">
                   <span className="sr-only">Sort units</span>
                   <select
@@ -301,7 +314,7 @@ export default function App({ host, layer }: { host: HTMLElement; layer: HTMLEle
                 </label>
               </div>
 
-              <div className="my-4 flex w-fit overflow-hidden rounded-lg border border-navy text-sm font-semibold" role="group" aria-label="Unit type filter">
+              <div className="my-4 flex w-fit overflow-hidden rounded-lg border border-navy text-sm font-semibold max-[349px]:grid max-[349px]:w-full max-[349px]:grid-cols-2 max-[349px]:text-center max-[349px]:[&>button:last-child:nth-child(odd)]:col-span-2 max-[349px]:[&>button:nth-child(3)]:border-l-0 max-[349px]:[&>button:nth-child(n+3)]:border-t max-[349px]:[&>button:nth-child(n+3)]:border-navy" role="group" aria-label="Unit type filter">
                 {filterBtn('all', 'All', true)}
                 {present.has('drive-up') && filterBtn('drive-up', 'Drive Up')}
                 {present.has('temperature-controlled') && filterBtn('temperature-controlled', 'Temperature Controlled')}
@@ -317,16 +330,17 @@ export default function App({ host, layer }: { host: HTMLElement; layer: HTMLEle
                 </p>
               )}
 
-              <div className="flex flex-col gap-4" aria-busy={loading}>
+              <div className="min-[1180px]:grid min-[1180px]:grid-cols-[minmax(0,1fr)_300px] min-[1180px]:gap-5">
+              <div className="flex flex-col gap-5" aria-busy={loading}>
                 {loading &&
                   [0, 1, 2].map((n) => (
                     <div key={n} className="h-36 animate-pulse rounded-2xl border border-slate-200 bg-slate-100" aria-hidden="true" />
                   ))}
-                {visible.map((unit) => (
+                {visible.map((unit, i) => (
                   <UnitCard
                     key={unit.key}
                     unit={unit}
-                    onSelect={openUnit}
+                    onSelect={(u, m) => openUnit(u, m, i + 1)}
                     allowReservations={policy.allowReservations !== false}
                     allowWaitlist={policy.allowWaitlist !== false}
                     phone={callPhone}
@@ -334,6 +348,8 @@ export default function App({ host, layer }: { host: HTMLElement; layer: HTMLEle
                   />
                 ))}
                 {!loading && options !== null && visible.length === 0 && <p className="py-8 text-center text-slate-500">No units of this type right now.</p>}
+              </div>
+              <SideColumn rating={rating} facility={facilityPhone} getTop={stickyHeaderHeight} />
               </div>
             </section>
           </>
