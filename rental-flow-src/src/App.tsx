@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { ChevronDown } from 'lucide-react'
+import { ChevronDown, DoorClosed, ThermometerSnowflake } from 'lucide-react'
 import SideColumn from './components/SideColumn'
 import type { CheckoutMode } from './config'
 import { config, monumentUnitsUrl, setRuntimeFacility } from './config'
 import type { Category, FacilityInfo, Policy, Rating, Tier, UnitOption } from './lib/units'
-import { cityState, facilityFromGroups, groupUnitOptions, initialUnitGroups, isPopular, loadFacilityDetails, loadRating, loadUnitGroups, pushEvent } from './lib/units'
+import { cityState, facilityFromGroups, groupUnitOptions, initialUnitGroups, isPopular, loadFacilityDetails, loadRating, loadUnitGroups, pushEvent, typeLine } from './lib/units'
 import SectionBand from './components/SectionBand'
 import FacilityHeader from './components/FacilityHeader'
 import UnitCard from './components/UnitCard'
@@ -37,6 +37,35 @@ function stickyHeaderHeight() {
     }
   }
   return Math.max(total, config.scrollOffset) + 12
+}
+
+function sectionTitle(cat: Category, unitType: string) {
+  if (cat === 'drive-up') return 'Drive Up'
+  if (cat === 'temperature-controlled') return 'Temperature Controlled'
+  if (cat === 'parking') return 'Vehicle Parking'
+  return unitType || 'Other storage'
+}
+
+// The heading above one group of units: the type, a short description, and how many sizes it has.
+function SectionHeading({ cat, unitType, count }: { cat: Category; unitType: string; count: number }) {
+  const temp = cat === 'temperature-controlled'
+  const Icon = temp ? ThermometerSnowflake : cat === 'drive-up' ? DoorClosed : null
+  const color = temp ? 'text-[#1E3A8A] border-[#1E3A8A]' : 'text-navy border-navy'
+  const sub = cat === 'parking' ? 'Rented by phone' : typeLine(cat, unitType)
+  return (
+    <div className={`mt-2 flex items-end justify-between gap-3 border-b-2 px-0.5 pb-2 first:mt-0 ${color}`}>
+      <div className="min-w-0">
+        <h3 className="flex items-center gap-2 font-display text-xl font-bold leading-tight">
+          {Icon && <Icon size={20} strokeWidth={2.2} aria-hidden="true" />}
+          {sectionTitle(cat, unitType)}
+        </h3>
+        <p className="mt-0.5 text-[13px] font-normal text-[#475569]">{sub}</p>
+      </div>
+      <span className="whitespace-nowrap text-[12.5px] font-semibold text-[#475569]">
+        {count} {cat === 'parking' ? (count === 1 ? 'space' : 'spaces') : count === 1 ? 'size' : 'sizes'}
+      </span>
+    </div>
+  )
 }
 
 export default function App({ host, layer }: { host: HTMLElement; layer: HTMLElement }) {
@@ -258,9 +287,38 @@ export default function App({ host, layer }: { host: HTMLElement; layer: HTMLEle
   // Only offer a filter for types this facility actually has.
   const present = useMemo(() => new Set((options ?? []).map((o) => o.category)), [options])
   const loading = options === null && !loadError
+  // With two or more unit types (parking not counted), the default view is grouped under one heading per type.
+  // Sorting by price or filtering to one type shows a plain list again, with the type label on each card.
+  const grouped = filter === 'all' && sort === 'size' && [...present].filter((c) => c !== 'parking').length > 1
   // The number on the "Call" button for vehicle parking: Monument's phone when it has answered, else the saved one.
   const facilityPhone = { ...config.facility, ...apiFacility }
   const callPhone = phoneReady ? { display: facilityPhone.phoneDisplay, href: facilityPhone.phoneHref } : null
+
+  const groups = useMemo(() => {
+    if (!grouped) return []
+    const order: Category[] = ['drive-up', 'temperature-controlled', 'other', 'parking']
+    return order
+      .map((cat) => {
+        const units = visible.filter((u) => u.category === cat)
+        // Units you can rent first, sold-out ones after. Each part keeps its size order.
+        const sorted = [...units.filter((u) => u.totalAvailable > 0), ...units.filter((u) => u.totalAvailable <= 0)]
+        return { cat, units: sorted }
+      })
+      .filter((g) => g.units.length > 0)
+  }, [grouped, visible])
+
+  const unitCard = (unit: UnitOption, position: number, underHeading: boolean) => (
+    <UnitCard
+      key={unit.key}
+      unit={unit}
+      onSelect={(u, m) => openUnit(u, m, position)}
+      allowReservations={policy.allowReservations !== false}
+      allowWaitlist={policy.allowWaitlist !== false}
+      phone={callPhone}
+      onCall={(u) => pushEvent('call_to_rent', { unit_size: u.size, unit_type: u.unitType, units_left: u.totalAvailable })}
+      hideTypePill={underHeading}
+    />
+  )
 
   const filterBtn = (value: Filter, label: string, first = false) => (
     <button
@@ -339,17 +397,21 @@ export default function App({ host, layer }: { host: HTMLElement; layer: HTMLEle
                   [0, 1, 2].map((n) => (
                     <div key={n} className="h-36 animate-pulse rounded-2xl border border-slate-200 bg-slate-100" aria-hidden="true" />
                   ))}
-                {visible.map((unit, i) => (
-                  <UnitCard
-                    key={unit.key}
-                    unit={unit}
-                    onSelect={(u, m) => openUnit(u, m, i + 1)}
-                    allowReservations={policy.allowReservations !== false}
-                    allowWaitlist={policy.allowWaitlist !== false}
-                    phone={callPhone}
-                    onCall={(u) => pushEvent('call_to_rent', { unit_size: u.size, unit_type: u.unitType, units_left: u.totalAvailable })}
-                  />
-                ))}
+                {grouped
+                  ? (() => {
+                      let n = 0
+                      return groups.map((g) => (
+                        <section key={g.cat} className="flex flex-col gap-5" aria-label={sectionTitle(g.cat, g.units[0].unitType)}>
+                          <SectionHeading cat={g.cat} unitType={g.units[0].unitType} count={g.units.length} />
+                          {g.units.map((unit) => {
+                            n += 1
+                            const pos = n
+                            return unitCard(unit, pos, true)
+                          })}
+                        </section>
+                      ))
+                    })()
+                  : visible.map((unit, i) => unitCard(unit, i + 1, false))}
                 {!loading && options !== null && visible.length === 0 && <p className="py-8 text-center text-slate-500">No units of this type right now.</p>}
               </div>
               <SideColumn rating={rating} facility={facilityPhone} getTop={stickyHeaderHeight} />

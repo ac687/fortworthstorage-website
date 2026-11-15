@@ -13,11 +13,13 @@ type Props = {
   // The facility phone. null while it is still loading. Vehicle parking is rented by phone, not online.
   phone?: { display: string; href: string } | null
   onCall?: (unit: UnitOption) => void
+  // True when the unit sits under its own type heading, so the type label is left off the card.
+  hideTypePill?: boolean
 }
 
 const link = 'cursor-pointer text-[13px] font-bold text-brand-dark underline hover:text-navy'
 
-export default function UnitCard({ unit, onSelect, allowReservations = true, allowWaitlist = true, phone = null, onCall }: Props) {
+export default function UnitCard({ unit, onSelect, allowReservations = true, allowWaitlist = true, phone = null, onCall, hideTypePill = false }: Props) {
   // Parking and RV spaces are rented by phone, so availability wording ("Waitlist only", "Only 2 left") is left off.
   const byPhone = unit.category === 'parking'
   const badge = byPhone ? null : availabilityBadge(unit.totalAvailable)
@@ -45,7 +47,7 @@ export default function UnitCard({ unit, onSelect, allowReservations = true, all
       <div className="flex flex-col gap-5 lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(290px,300px)_170px] lg:items-center lg:gap-5">
         {/* Unit details: type label on top (same words as the filter buttons), then photo and text */}
         <div className="flex flex-col items-center gap-2 lg:items-start">
-          {typePill && (
+          {typePill && !hideTypePill && (
             <span className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border py-1 pl-[9px] pr-3 text-[13px] font-bold leading-tight ${typePill.cls}`}>
               <typePill.Icon size={15} strokeWidth={2.2} aria-hidden="true" />
               {typePill.text}
