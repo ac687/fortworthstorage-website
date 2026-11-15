@@ -331,7 +331,6 @@ main p a:not([class]),main li a:not([class]){overflow-wrap:anywhere}
 .nav-units-card{grid-template-columns:repeat(2,max-content)}
 
 /* Free disc lock pill inside area-page heroes */
-.section_hero-sg-5 .disc-lock-hero{margin-top:14px}
 
 /* Homepage reviews: three static Google review cards under the live rating block */
 .section_testimonials { background: #1f2e4e; padding: 72px 20px; }
