@@ -253,6 +253,22 @@ export function promoLabels(tier: Tier): { promo: string; after: string; sentenc
 
 // Wording for the unit card's price box: the label under the promo price and under the regular rent, and the
 // total saved. Handles promotions that start with the first payment and (anniversary billing) with the second.
+// "50% Off Your First 2 Months" -> "50% off your first 2 months". Only plain Title Case words after the first one are lowercased,
+// so acronyms (AARP), numbers, and holiday or month names keep their capitals.
+const KEEP_CAPS = new Set(['Black', 'Friday', 'Cyber', 'Monday', 'Christmas', 'Thanksgiving', 'Easter', 'Halloween', 'Labor', 'Memorial', 'Independence', 'Veterans', 'Presidents', 'Valentine', 'Valentines', 'January', 'February', 'March', 'April', 'June', 'July', 'August', 'September', 'October', 'November', 'December', 'Spring', 'Summer'])
+export function sentenceCase(text: string): string {
+  const words = text.split(' ')
+  return words
+    .map((w, i) => {
+      if (i === 0 || !/^[A-Z][a-z]+[,.!:;]?$/.test(w)) return w
+      const bare = w.replace(/[,.!:;]$/, '')
+      if (KEEP_CAPS.has(bare)) return w
+      if ((bare === 'Day' || bare === 'Days') && KEEP_CAPS.has(words[i - 1]?.replace(/[,.!:;]$/, ''))) return w
+      return w.toLowerCase()
+    })
+    .join(' ')
+}
+
 export function cardLabels(tier: Tier): { promoMonth: string; rentMonth: string; save: number | null } {
   const n = tier.promoMonths
   const per = tier.promoRate !== null ? Math.max(0, tier.webRate - tier.promoRate) : 0

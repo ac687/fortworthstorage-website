@@ -2,6 +2,8 @@ import { Car, DoorClosed, Phone, ThermometerSnowflake, Warehouse } from 'lucide-
 import { config } from '../config'
 import type { UnitOption } from '../lib/units'
 import { availabilityBadge, isPopular, typeLine, withoutPromo } from '../lib/units'
+import { useCompact } from '../lib/useCompact'
+import CompactCard from './CompactCard'
 import MoveInCost from './MoveInCost'
 import PriceBox from './PriceBox'
 
@@ -15,11 +17,17 @@ type Props = {
   onCall?: (unit: UnitOption) => void
   // True when the unit sits under its own type heading, so the type label is left off the card.
   hideTypePill?: boolean
+  // True when the unit sits under a type heading (grouped list). Used by the compact phone card.
+  underHeading?: boolean
 }
 
 const link = 'cursor-pointer text-[13px] font-bold text-brand-dark underline hover:text-navy'
 
-export default function UnitCard({ unit, onSelect, allowReservations = true, allowWaitlist = true, phone = null, onCall, hideTypePill = false }: Props) {
+export default function UnitCard({ unit, onSelect, allowReservations = true, allowWaitlist = true, phone = null, onCall, hideTypePill = false, underHeading = false }: Props) {
+  const compact = useCompact()
+  if (compact) {
+    return <CompactCard unit={unit} onSelect={onSelect} allowReservations={allowReservations} allowWaitlist={allowWaitlist} phone={phone} onCall={onCall} underHeading={underHeading} />
+  }
   // Parking and RV spaces are rented by phone, so availability wording ("Waitlist only", "Only 2 left") is left off.
   const byPhone = unit.category === 'parking'
   const badge = byPhone ? null : availabilityBadge(unit.totalAvailable)
@@ -40,7 +48,7 @@ export default function UnitCard({ unit, onSelect, allowReservations = true, all
   const rent = 'w-full cursor-pointer rounded-full bg-cta px-8 py-3 text-center text-sm font-bold text-white transition hover:bg-cta-hover'
 
   return (
-    <article className={`relative rounded-2xl bg-white p-4 sm:p-5 ${popular ? 'border border-navy ring-1 ring-navy' : 'border border-[#D5DBE6]'}`}>
+    <article className={`relative rounded-2xl p-4 sm:p-5 bg-white ${popular ? 'border border-navy ring-1 ring-navy' : 'border border-[#D5DBE6]'}`}>
       {popular && (
         <span className="absolute -top-3 left-5 rounded-full bg-navy px-3 py-1 text-xs font-extrabold leading-none tracking-wide text-white">★ {config.popular.ribbonText}</span>
       )}
@@ -64,7 +72,7 @@ export default function UnitCard({ unit, onSelect, allowReservations = true, all
             )}
           </div>
           <div className="min-w-0">
-            <h3 className="flex flex-wrap items-center gap-x-3 gap-y-1 font-display text-2xl font-bold text-navy">
+            <h3 className={`flex flex-wrap items-center gap-x-3 gap-y-1 font-display text-2xl font-bold ${soldOut ? 'text-[#475569]' : 'text-navy'}`}>
               {unit.width}' x {unit.depth}'
               {badge && (
                 <span className={`inline-flex items-center whitespace-nowrap rounded px-2 py-0.5 font-sans text-xs font-bold ${badge.tone === 'red' ? 'bg-[#FEE2E2] text-[#991B1B]' : 'bg-slate-100 text-[#475569]'}`}>
@@ -72,7 +80,7 @@ export default function UnitCard({ unit, onSelect, allowReservations = true, all
                 </span>
               )}
             </h3>
-            {sizeLine && <p className="text-sm font-semibold text-navy">{sizeLine}</p>}
+            {sizeLine && <p className={`text-sm font-semibold ${soldOut ? 'text-[#475569]' : 'text-navy'}`}>{sizeLine}</p>}
             <p className="text-sm text-[#475569]">{typeLine(unit.category, unit.unitType)}</p>
           </div>
         </div>

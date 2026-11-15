@@ -117,7 +117,8 @@ export const config = {
 
   // "What fits" block beside the estimate on desktop, typed in /js/rental-flow-settings.js.
   // Key = size ("5x5"). line is the short line under the size on the unit card; summary is one short line; fits is a short list.
-  sizeInfo: {} as Record<string, { summary: string; fits: string[]; line: string }>,
+  // `line` sits under the size on tablets and desktop; `short` is the shorter version beside the size on phones (empty = use `line`).
+  sizeInfo: {} as Record<string, { summary: string; fits: string[]; line: string; short: string }>,
   sizeGuidePath: '/size-guide',
 
   // Free disc lock this facility gives every tenant. Off by default; a site turns it on, and can change

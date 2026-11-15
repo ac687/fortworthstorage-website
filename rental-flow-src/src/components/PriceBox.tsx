@@ -1,22 +1,27 @@
 import { Gift, LockKeyhole } from 'lucide-react'
 import { config } from '../config'
 import type { Tier } from '../lib/units'
-import { cardLabels, formatPrice } from '../lib/units'
+import { cardLabels, formatPrice, sentenceCase } from '../lib/units'
 
 // The unit card's price box: an offer strip (promotion name + "Save $X"), two equal halves (lead price | regular rent)
 // and a bottom bar (rate lock, free disc lock). Same height on every card, with or without a promotion.
 // `multi` = the size has more than one tier, so the prices shown are the lowest ones (the bar says so). `soldOut` = the regular price only.
-export default function PriceBox({ tier, multi, soldOut, byPhone = false }: { tier: Tier; multi: boolean; soldOut: boolean; byPhone?: boolean }) {
+export type PriceLeft = { price: number; label: string; free?: boolean; promo?: boolean }
+export type PriceRight = { price: number; label: string; crossed?: boolean; soft?: boolean }
+
+// What the price box shows for a tier: the offer strip text, the lead price (left) and the regular price (right).
+// Shared by the full price box and the compact phone card, so both always say the same thing.
+export function priceModel(tier: Tier, soldOut: boolean, byPhone: boolean) {
   const promo = !soldOut && tier.promoRate !== null
   const inStore = !soldOut && !byPhone && !promo && config.showStreetRate && tier.streetRate > tier.webRate
   const { promoMonth, rentMonth, save } = cardLabels(tier)
 
   let strip: { text: string; save: number | null } | null = null
-  let left: { price: number; label: string; free?: boolean; promo?: boolean }
-  let right: { price: number; label: string; crossed?: boolean; soft?: boolean } | null = null
+  let left: PriceLeft
+  let right: PriceRight | null = null
 
   if (promo) {
-    strip = { text: tier.promoName ?? 'Special offer', save: save !== null && save > 0 ? save : null }
+    strip = { text: sentenceCase(tier.promoName ?? 'Special offer'), save: save !== null && save > 0 ? save : null }
     left = { price: tier.promoRate!, label: promoMonth, free: tier.promoRate === 0, promo: true }
     right = { price: tier.webRate, label: rentMonth, soft: true }
   } else if (inStore) {
@@ -27,6 +32,11 @@ export default function PriceBox({ tier, multi, soldOut, byPhone = false }: { ti
   } else {
     left = { price: tier.webRate, label: 'Every month' }
   }
+  return { promo, inStore, strip, left, right }
+}
+
+export default function PriceBox({ tier, multi, soldOut, byPhone = false }: { tier: Tier; multi: boolean; soldOut: boolean; byPhone?: boolean }) {
+  const { promo, inStore, strip, left, right } = priceModel(tier, soldOut, byPhone)
 
   // Both prices in a box share one size. A price with cents ("$44.50") is wider, so the pair steps down a size to fit its half.
   const cents = [left.price, right?.price ?? 0].some((p) => formatPrice(p).includes('.'))
@@ -37,7 +47,7 @@ export default function PriceBox({ tier, multi, soldOut, byPhone = false }: { ti
       <div className="whitespace-nowrap">
         <span
           className={`font-display ${priceSize} ${
-            o.crossed ? 'font-extrabold text-[#475569] line-through decoration-1' : o.promo ? 'font-extrabold text-[#15803D]' : o.soft ? 'font-semibold text-[#334155]' : 'font-extrabold text-navy'
+            o.crossed ? 'font-extrabold text-[#475569] line-through decoration-1' : o.promo ? 'font-extrabold text-[#15803D]' : o.soft ? 'font-semibold text-[#334155]' : soldOut ? 'font-semibold text-[#475569]' : 'font-extrabold text-navy'
           }`}
         >
           {o.free ? '$0' : formatPrice(p)}
@@ -53,7 +63,7 @@ export default function PriceBox({ tier, multi, soldOut, byPhone = false }: { ti
   const showNote = multi && !soldOut && !!config.priceNote
 
   return (
-    <div className="flex h-[172px] w-full flex-col overflow-hidden rounded-xl border border-brand-100 bg-white">
+    <div className={`flex h-[172px] w-full flex-col overflow-hidden rounded-xl border ${soldOut ? 'border-slate-200 bg-[#F8FAFC]' : 'border-brand-100 bg-white'}`}>
       {strip && (
         <div className="flex h-[42px] shrink-0 items-center justify-between gap-2 border-b border-[#CBD5E1] bg-[#DCFCE7] px-3">
           <span className="line-clamp-2 min-w-0 text-[12.5px] font-extrabold leading-tight text-[#14532D]" title={strip.text}>

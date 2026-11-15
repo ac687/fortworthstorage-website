@@ -20,7 +20,7 @@ export type SiteSettings = {
   priceNote?: string
   reviews?: { name?: string; date?: string; text?: string }[]
   moveInCost?: { enabled?: boolean }
-  sizeInfo?: Record<string, { line?: string; summary?: string; fits?: string[] }>
+  sizeInfo?: Record<string, { line?: string; short?: string; summary?: string; fits?: string[] }>
   discLock?: {
     enabled?: boolean
     barLabel?: string
@@ -209,14 +209,15 @@ export function applySettings(raw: unknown = window.RENTAL_FLOW_SETTINGS): Recor
 
   const si = obj(s.sizeInfo)
   if (si) {
-    const map: Record<string, { summary: string; fits: string[]; line: string }> = {}
+    const map: Record<string, { summary: string; fits: string[]; line: string; short: string }> = {}
     for (const [size, v] of Object.entries(si)) {
       const o = obj(v)
       if (!o || !/^\d+x\d+$/.test(size)) continue
       const line = str(o.line, 80)
+      const short = str(o.short, 40)
       const summary = str(o.summary, 160)
       const fits = Array.isArray(o.fits) ? o.fits.map((f) => str(f, 80)).filter((f): f is string => !!f).slice(0, 6) : []
-      if (line || summary || fits.length) map[size] = { line: line ?? '', summary: summary ?? '', fits }
+      if (line || short || summary || fits.length) map[size] = { line: line ?? '', short: short ?? '', summary: summary ?? '', fits }
     }
     config.sizeInfo = map
   }

@@ -149,7 +149,7 @@ export default function MoveInCost({ tier, multi = false, onRent }: { tier: Tier
 
   return (
     <div ref={wrap} className="relative text-center">
-      <button type="button" onClick={toggle} aria-expanded={open} className="inline-flex cursor-pointer items-center gap-1 text-[13px] font-bold text-brand-dark underline hover:text-navy">
+      <button type="button" onClick={toggle} aria-expanded={open} className="inline-flex cursor-pointer items-center gap-1 whitespace-nowrap text-[13px] font-bold text-brand-dark underline hover:text-navy">
         What's due today? <Chev size={14} aria-hidden="true" />
       </button>
       {open && !phone && (

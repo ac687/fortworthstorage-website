@@ -222,32 +222,38 @@ window.RENTAL_FLOW_SETTINGS = {
   moveInCost: { enabled: true },
 
   /* 10. WHAT FITS (the line under the size on each unit card, and a block beside the estimate on the checkout step)
-         One entry per size ("WIDTHxDEPTH"): line = the short line under the size on the unit card; summary = a one-line
+         One entry per size ("WIDTHxDEPTH"): line = the short line under the size on the unit card (tablet and desktop); short = a shorter version
+         beside the size on phones, about 27 characters at most (leave out to use line); summary = a one-line
          summary and fits = a short list of what fits (both shown beside the estimate on desktop).
          Sizes with no entry show nothing. Keep each item short. */
   sizeInfo: {
     '10x10': {
       line: 'Fits a 1-bedroom apartment',
+      short: '1-bedroom apartment', // phones: shorter, fits beside the size
       summary: '100 sq ft, about the size of a standard bedroom.',
       fits: ['Contents of a 1 to 2 bedroom apartment', 'Living room furniture', 'Bedroom sets', '20 to 30 boxes'],
     },
     '10x20': {
       line: 'One-car garage size, fits a 3-bedroom home',
+      short: 'One-car garage size', // phones: shorter, fits beside the size
       summary: '200 sq ft, about the size of a one-car garage.',
       fits: ['Contents of a 3 to 4 bedroom home', 'Motorcycles, ATVs, and small boats', 'Contractor tools and equipment', 'Business inventory'],
     },
     '10x30': {
       line: 'Two-car garage size, fits a 5-bedroom home',
+      short: 'Two-car garage size', // phones: shorter, fits beside the size
       summary: '300 sq ft, about the size of a two-car garage.',
       fits: ['Contents of a large 4 to 5 bedroom home', 'Multiple full-size vehicles or trucks', 'Large boats, RVs, or campers (check dimensions)', 'Business or commercial inventory'],
     },
     '20x20': {
       line: 'Large two-car garage size',
+      short: 'Large two-car garage', // phones: shorter, fits beside the size
       summary: '400 sq ft, about the size of a large two-car garage.',
       fits: ['Contents of a large 4 to 5 bedroom home plus garage', 'Multiple full-size vehicles side by side', 'Full business inventory or retail overstock', 'Contractor materials, trailers, and large equipment'],
     },
     '20x30': {
       line: 'Our largest unit, fits a very large home',
+      short: 'Our largest unit', // phones: shorter, fits beside the size
       summary: '600 sq ft, our largest unit.',
       fits: ['Contents of a very large home plus detached garage', 'Multiple full-size vehicles, trucks, or work vans', 'Complete business or commercial inventory', 'Oversized items, trailers, and bulk materials'],
     },

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { ChevronDown, DoorClosed, ThermometerSnowflake } from 'lucide-react'
+import { ChevronDown, DoorClosed, Gift, LockKeyhole, ThermometerSnowflake } from 'lucide-react'
 import SideColumn from './components/SideColumn'
 import type { CheckoutMode } from './config'
 import { config, monumentUnitsUrl, setRuntimeFacility } from './config'
@@ -9,6 +9,7 @@ import { cityState, facilityFromGroups, groupUnitOptions, initialUnitGroups, isP
 import SectionBand from './components/SectionBand'
 import FacilityHeader from './components/FacilityHeader'
 import UnitCard from './components/UnitCard'
+import { useCompact } from './lib/useCompact'
 import TierModal from './components/TierModal'
 import TypeChooser from './components/TypeChooser'
 import CheckoutPanel from './components/CheckoutPanel'
@@ -287,6 +288,7 @@ export default function App({ host, layer }: { host: HTMLElement; layer: HTMLEle
   // With two or more unit types (parking not counted), the default view is grouped under one heading per type.
   // Sorting by price or filtering to one type shows a plain list again, with the type label on each card.
   const rentableTypes = [...present].filter((c) => c !== 'parking').length
+  const compact = useCompact()
   const grouped = filter === 'all' && sort === 'size' && rentableTypes > 1
   // With only one rentable type there is nothing to tell apart, so the type label is left off the cards too.
   const showTypePill = rentableTypes > 1 && !grouped
@@ -317,6 +319,7 @@ export default function App({ host, layer }: { host: HTMLElement; layer: HTMLEle
       phone={callPhone}
       onCall={(u) => pushEvent('call_to_rent', { unit_size: u.size, unit_type: u.unitType, units_left: u.totalAvailable })}
       hideTypePill={!showTypePill}
+      underHeading={grouped}
     />
   )
 
@@ -392,7 +395,25 @@ export default function App({ host, layer }: { host: HTMLElement; layer: HTMLEle
               )}
 
               <div className="min-[1180px]:grid min-[1180px]:grid-cols-[minmax(0,1fr)_300px] min-[1180px]:gap-5">
-              <div className="flex flex-col gap-5" aria-busy={loading}>
+              <div className="flex flex-col gap-4 md:gap-5" aria-busy={loading}>
+                {compact && (config.rateLock.enabled || config.discLock.enabled) && (
+                  // On phones the rate lock and free disc lock are said once here instead of on every card.
+                  <div className="flex flex-wrap items-center justify-center gap-x-2 gap-y-1 rounded-[10px] border border-brand-100 bg-brand-50 px-3 py-2 text-[12.5px] font-semibold">
+                    {config.rateLock.enabled && (
+                      <span className="inline-flex items-center gap-1 text-navy">
+                        <LockKeyhole size={13} aria-hidden="true" />
+                        {config.rateLock.text}
+                      </span>
+                    )}
+                    {config.rateLock.enabled && config.discLock.enabled && <span className="text-slate-400" aria-hidden="true">·</span>}
+                    {config.discLock.enabled && (
+                      <span className="inline-flex items-center gap-1 text-[#166534]">
+                        <Gift size={13} aria-hidden="true" />
+                        {config.discLock.barLabel}
+                      </span>
+                    )}
+                  </div>
+                )}
                 {loading &&
                   [0, 1, 2].map((n) => (
                     <div key={n} className="h-36 animate-pulse rounded-2xl border border-slate-200 bg-slate-100" aria-hidden="true" />
@@ -401,7 +422,7 @@ export default function App({ host, layer }: { host: HTMLElement; layer: HTMLEle
                   ? (() => {
                       let n = 0
                       return groups.map((g) => (
-                        <section key={g.cat} className="flex flex-col gap-5" aria-label={sectionTitle(g.cat, g.units[0].unitType)}>
+                        <section key={g.cat} className="flex flex-col gap-4 md:gap-5" aria-label={sectionTitle(g.cat, g.units[0].unitType)}>
                           <SectionHeading cat={g.cat} unitType={g.units[0].unitType} count={g.units.length} />
                           {g.units.map((unit) => {
                             n += 1
