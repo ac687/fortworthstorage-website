@@ -26,7 +26,8 @@ const modeTitle: Record<CheckoutMode, string> = {
 export default function CheckoutPanel({ unit, tier, mode, onBack, scrollToTop, facility = {} }: Props) {
   const iframeRef = useRef<HTMLIFrameElement>(null)
   const [height, setHeight] = useState(1000)
-  const [estimateCollapsed, setEstimateCollapsed] = useState(false)
+  // Starts collapsed (the header still shows the total); a tap opens the line items.
+  const [estimateCollapsed, setEstimateCollapsed] = useState(true)
   // Monument shows its own cart once the details form is done, so the estimate goes away then.
   const [estimateDone, setEstimateDone] = useState(false)
   // Add ?tudebug=1 to the page address to see every message Monument sends to the
