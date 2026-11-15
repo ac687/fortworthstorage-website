@@ -374,3 +374,15 @@ main p a:not([class]),main li a:not([class]){overflow-wrap:anywhere}
   .tu-review-more { background: #fff; color: #1f2e4e; font-size: 15px; }
   .tu-review-more:hover, .tu-review-more:focus-visible { text-decoration: none; background: #dbe3f4; }
 }
+
+/* Home page, phones only: a tighter hero so the unit cards start higher on the first screen.
+   Same text and headings as desktop; only spacing and size change. */
+@media (max-width: 767px) {
+  #hero-text-wrapper { padding-top: 14px; padding-bottom: 10px; }
+  #hero-text-wrapper .heading-6 { margin-top: 0; margin-bottom: 6px; font-size: min(6svw, 24px); line-height: 1.15; }
+  #hero-text-wrapper .paragraph-3 { margin-bottom: 8px; padding: 0 16px; font-size: 14px; line-height: 20px; color: #475569; text-align: center; }
+}
+
+/* Footer "Questions?" bar: keep the phone number in one piece; on phones "Questions?" gets its own line. */
+.ft-cta-t { white-space: nowrap; }
+@media (max-width: 767px) { .ft-cta-q { display: block; } .ft-cta-h { font-size: 21px; line-height: 1.3; } }

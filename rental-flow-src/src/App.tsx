@@ -353,14 +353,14 @@ export default function App({ host, layer }: { host: HTMLElement; layer: HTMLEle
           <>
             <FacilityHeader info={apiFacility} infoReady={infoReady} phoneReady={phoneReady} rating={rating} />
             <section aria-labelledby="tu-units-heading">
-              <div className="flex flex-col gap-3 border-b border-slate-200 pb-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex flex-col gap-3 border-b border-slate-200 pb-3 max-md:border-0 max-md:pb-0 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                  <h2 id="tu-units-heading" className="font-display text-xl font-bold text-navy sm:text-2xl">
+                  <h2 id="tu-units-heading" className="font-display text-xl font-bold text-navy max-md:sr-only sm:text-2xl">
                     Rent Self Storage Units{infoReady ? ` in ${cityState(apiFacility.cityLine ?? config.facility.cityLine)}` : ''}
                   </h2>
-                  {config.tagline && <p className="mt-0.5 text-sm text-[#475569]">{config.tagline}</p>}
+                  {config.tagline && <p className="mt-0.5 text-sm text-[#475569] max-md:hidden">{config.tagline}</p>}
                 </div>
-                <label className="relative inline-flex w-fit items-center">
+                <label className="relative inline-flex w-fit items-center max-md:hidden">
                   <span className="sr-only">Sort units</span>
                   <select
                     value={sort}

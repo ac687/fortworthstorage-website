@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
-import { ChevronLeft, ChevronRight, Phone, Star } from 'lucide-react'
+import { ChevronDown, ChevronLeft, ChevronRight, Phone, Star } from 'lucide-react'
 import { config } from '../config'
+import { useCompact } from '../lib/useCompact'
 import { formatWindow } from '../lib/hours'
 import type { FacilityInfo, Rating } from '../lib/units'
 
@@ -42,6 +43,85 @@ export default function FacilityHeader({ info = {}, infoReady = true, phoneReady
     const dx = t.clientX - s.x
     const dy = t.clientY - s.y
     if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy) * 1.5) go(dx < 0 ? 1 : -1)
+  }
+
+  const compact = useCompact()
+  const [open, setOpen] = useState(false)
+  if (compact) {
+    const ratingChip = shownRating && (
+      <span className="inline-flex items-center gap-1 rounded-full bg-brand-50 px-2 py-0.5 text-xs font-semibold text-navy">
+        <Star className="size-3 fill-current text-amber-500" aria-hidden="true" />
+        {fmt(shownRating.rating)} ({shownRating.count} reviews)
+      </span>
+    )
+    const btn = 'inline-flex h-10 min-w-0 cursor-pointer items-center justify-center gap-1.5 whitespace-nowrap rounded-[10px] border-[1.5px] border-slate-300 bg-white px-2 text-sm font-semibold text-brand-dark max-[399px]:gap-1 max-[399px]:px-1.5 max-[399px]:text-[13px]'
+    return (
+      <section className="mb-4 rounded-2xl border border-slate-200 bg-white p-3">
+        <div className="flex items-center gap-3">
+          <img
+            src={f.photos[0]?.src}
+            alt={f.photos[0]?.alt ?? ''}
+            width={84}
+            height={84}
+            loading="eager"
+            className="size-[84px] shrink-0 rounded-[10px] bg-brand-50 object-cover"
+          />
+          <div className="min-w-0">
+            {infoReady ? <p className="truncate text-[11px] font-bold uppercase tracking-wider text-slate-500">{f.name}</p> : <Bar w="w-24" h="h-3" />}
+            {infoReady ? <h2 className="font-display text-[19px] font-bold leading-6 text-navy">{f.street}</h2> : <Bar w="w-36" h="h-6" />}
+            {infoReady ? <p className="text-[13px] leading-[18px] text-slate-500">{f.cityLine}</p> : <Bar w="w-28" h="h-3" />}
+            {ratingChip && (
+              <div className="mt-1">
+                {shownRating?.url ? (
+                  <a href={shownRating.url} target="_blank" rel="noopener">
+                    {ratingChip}
+                  </a>
+                ) : (
+                  ratingChip
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+        <div className="mt-3 grid grid-cols-2 gap-2 max-[359px]:grid-cols-1">
+          {phoneReady ? (
+            <a href={f.phoneHref} className={btn}>
+              <Phone size={14} aria-hidden="true" />
+              <span>{f.phoneDisplay}</span>
+            </a>
+          ) : (
+            <span className="block h-10 animate-pulse rounded-[10px] bg-slate-200" aria-hidden="true" />
+          )}
+          <button type="button" aria-expanded={open} aria-controls="tu-facility-more" onClick={() => setOpen((o) => !o)} className={btn}>
+            <span>Hours &amp; amenities</span>
+            <ChevronDown size={16} aria-hidden="true" className={`shrink-0 transition-transform ${open ? 'rotate-180' : ''}`} />
+          </button>
+        </div>
+        {/* Kept in the page when closed (hidden only by height), so the text is still there for search engines. */}
+        <div id="tu-facility-more" className={`grid transition-[grid-template-rows] duration-200 ${open ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'}`}>
+          <div className={`overflow-hidden ${open ? '' : 'invisible'}`}>
+            <div className="mt-3 grid gap-3 border-t border-slate-200 pt-3 text-sm">
+              <div>
+                <h3 className="font-semibold text-navy">Gate Access Hours</h3>
+                <p className="text-slate-600">{formatWindow(f.gateHours)}</p>
+              </div>
+              <div>
+                <h3 className="font-semibold text-navy">Customer Service Hours</h3>
+                <p className="text-slate-600">{formatWindow(f.supportHours)}</p>
+              </div>
+              <div>
+                <h3 className="mb-1.5 font-bold text-navy">Amenities</h3>
+                <ul className="grid grid-cols-1 gap-y-1 text-slate-600">
+                  {f.amenities.map((a) => (
+                    <li key={a}>{a}</li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    )
   }
 
   return (
