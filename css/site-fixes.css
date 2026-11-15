@@ -385,3 +385,6 @@ main p a:not([class]),main li a:not([class]){overflow-wrap:anywhere}
 /* Footer "Questions?" bar: keep the phone number in one piece; on phones "Questions?" gets its own line. */
 .ft-cta-t { white-space: nowrap; }
 @media (max-width: 767px) { .ft-cta-q { display: block; } .ft-cta-h { font-size: 21px; line-height: 1.3; } }
+
+/* Home page desktop: same hero padding on all three sites. */
+@media (min-width: 992px) { #hero-text-wrapper { padding-top: 40px; padding-bottom: 40px; } }
