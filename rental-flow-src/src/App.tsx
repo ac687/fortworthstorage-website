@@ -275,13 +275,10 @@ export default function App({ host, layer }: { host: HTMLElement; layer: HTMLEle
     const byPrice = (a: UnitOption, b: UnitOption) => a.fromTier.webRate - b.fromTier.webRate
     if (sort === 'price-asc') return [...list].sort(byPrice)
     if (sort === 'price-desc') return [...list].sort((a, b) => byPrice(b, a))
-    // All, by size: units you can rent first, then vehicle parking (call to rent), then sold-out
+    // By size: units you can rent first, then (in All) vehicle parking, which is rented by phone, then sold-out
     // units that only offer the waitlist. Each part stays in size order (the sort is stable).
-    if (filter === 'all') {
-      const rank = (o: UnitOption) => (o.category === 'parking' ? 1 : o.totalAvailable <= 0 ? 2 : 0)
-      return [...list].sort((a, b) => rank(a) - rank(b))
-    }
-    return list
+    const rank = (o: UnitOption) => (o.category === 'parking' ? 1 : o.totalAvailable <= 0 ? 2 : 0)
+    return [...list].sort((a, b) => rank(a) - rank(b))
   }, [options, filter, sort])
 
   // Only offer a filter for types this facility actually has.
