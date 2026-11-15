@@ -286,7 +286,10 @@ export default function App({ host, layer }: { host: HTMLElement; layer: HTMLEle
   const loading = options === null && !loadError
   // With two or more unit types (parking not counted), the default view is grouped under one heading per type.
   // Sorting by price or filtering to one type shows a plain list again, with the type label on each card.
-  const grouped = filter === 'all' && sort === 'size' && [...present].filter((c) => c !== 'parking').length > 1
+  const rentableTypes = [...present].filter((c) => c !== 'parking').length
+  const grouped = filter === 'all' && sort === 'size' && rentableTypes > 1
+  // With only one rentable type there is nothing to tell apart, so the type label is left off the cards too.
+  const showTypePill = rentableTypes > 1 && !grouped
   // The number on the "Call" button for vehicle parking: Monument's phone when it has answered, else the saved one.
   const facilityPhone = { ...config.facility, ...apiFacility }
   const callPhone = phoneReady ? { display: facilityPhone.phoneDisplay, href: facilityPhone.phoneHref } : null
@@ -304,7 +307,7 @@ export default function App({ host, layer }: { host: HTMLElement; layer: HTMLEle
       .filter((g) => g.units.length > 0)
   }, [grouped, visible])
 
-  const unitCard = (unit: UnitOption, position: number, underHeading: boolean) => (
+  const unitCard = (unit: UnitOption, position: number) => (
     <UnitCard
       key={unit.key}
       unit={unit}
@@ -313,7 +316,7 @@ export default function App({ host, layer }: { host: HTMLElement; layer: HTMLEle
       allowWaitlist={policy.allowWaitlist !== false}
       phone={callPhone}
       onCall={(u) => pushEvent('call_to_rent', { unit_size: u.size, unit_type: u.unitType, units_left: u.totalAvailable })}
-      hideTypePill={underHeading}
+      hideTypePill={!showTypePill}
     />
   )
 
@@ -403,12 +406,12 @@ export default function App({ host, layer }: { host: HTMLElement; layer: HTMLEle
                           {g.units.map((unit) => {
                             n += 1
                             const pos = n
-                            return unitCard(unit, pos, true)
+                            return unitCard(unit, pos)
                           })}
                         </section>
                       ))
                     })()
-                  : visible.map((unit, i) => unitCard(unit, i + 1, false))}
+                  : visible.map((unit, i) => unitCard(unit, i + 1))}
                 {!loading && options !== null && visible.length === 0 && <p className="py-8 text-center text-slate-500">No units of this type right now.</p>}
               </div>
               <SideColumn rating={rating} facility={facilityPhone} getTop={stickyHeaderHeight} />
