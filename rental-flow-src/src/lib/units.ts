@@ -284,7 +284,7 @@ export function cardLabels(tier: Tier): { promoMonth: string; rentMonth: string;
 // When every tier that still has units carries the same promotion (same name, length and start), the tier popup
 // says it once in a banner instead of repeating it on each card. Returns null when promos differ, are missing on
 // some tier, or only one tier is open, and each card then shows its own offer.
-export function sharedPromo(tiers: Tier[]): { text: string; save: number | null } | null {
+export function sharedPromo(tiers: Tier[]): { text: string } | null {
   const open = tiers.filter((t) => t.available > 0)
   if (open.length < 2) return null
   const first = open[0]
@@ -293,8 +293,7 @@ export function sharedPromo(tiers: Tier[]): { text: string; save: number | null 
     (t) => t.promoRate !== null && t.promoName === first.promoName && t.promoMonths === first.promoMonths && t.promoFirstFullMonth === first.promoFirstFullMonth,
   )
   if (!same) return null
-  const saves = open.map((t) => cardLabels(t).save).filter((v): v is number => v !== null && v > 0)
-  return { text: sentenceCase(first.promoName), save: saves.length ? Math.max(...saves) : null }
+  return { text: sentenceCase(first.promoName) }
 }
 
 const isNum = (v: unknown): v is number => typeof v === 'number' && Number.isFinite(v)

@@ -79,7 +79,7 @@ export default function TierModal({ unit, mode, allowWaitlist = true, onClose, o
           </button>
         </div>
 
-        {shared && <PromoBanner text={shared.text} save={shared.save} />}
+        {shared && <PromoBanner text={shared.text} />}
 
         {!desktop ? (
           <TierAccordion unit={unit} mode={mode} allowWaitlist={allowWaitlist} sharedOffer={!!shared} onChoose={onChoose} />
