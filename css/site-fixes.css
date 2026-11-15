@@ -388,3 +388,6 @@ main p a:not([class]),main li a:not([class]){overflow-wrap:anywhere}
 
 /* Home page desktop: same hero padding on all three sites. */
 @media (min-width: 992px) { #hero-text-wrapper { padding-top: 40px; padding-bottom: 40px; } }
+
+/* Tablet and desktop nav: the same 56px logo height on all three sites, so the header is the same height. */
+@media (min-width: 768px) { .nav_logo { width: auto; height: 56px; max-height: none; } }
