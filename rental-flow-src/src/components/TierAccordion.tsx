@@ -2,14 +2,16 @@ import { config } from '../config'
 import { useState } from 'react'
 import { Check } from 'lucide-react'
 import type { Tier, UnitOption } from '../lib/units'
-import { availabilityBadge, formatPrice, promoLabels, withoutPromo } from '../lib/units'
+import { availabilityBadge, cardLabels, formatPrice, promoLabels, withoutPromo } from '../lib/units'
 import type { CheckoutMode } from '../config'
 import RichText from './RichText'
+import PopupNotes from './PopupNotes'
 
 type Props = {
   unit: UnitOption
   mode: 'rent' | 'reserve'
   allowWaitlist: boolean
+  sharedOffer: boolean // the popup's banner already names the promotion
   onChoose: (tier: Tier, mode: CheckoutMode) => void
 }
 
@@ -25,7 +27,7 @@ function startingIndex(tiers: Tier[]): number {
 
 // Phones and tablets: one row per tier. The selected tier opens to show what it includes,
 // and one button at the bottom continues with it. Desktop keeps the three side-by-side cards.
-export default function TierAccordion({ unit, mode, allowWaitlist, onChoose }: Props) {
+export default function TierAccordion({ unit, mode, allowWaitlist, sharedOffer, onChoose }: Props) {
   const { tiers } = unit
   const [sel, setSel] = useState(() => startingIndex(tiers))
   const anyAvailable = tiers.some((t) => t.available > 0)
@@ -48,6 +50,7 @@ export default function TierAccordion({ unit, mode, allowWaitlist, onChoose }: P
           const badge = availabilityBadge(raw.available)
           const promo = tier.promoRate !== null
           const free = tier.promoRate === 0
+          const save = promo ? cardLabels(tier).save : null
           const labels = promoLabels(tier)
           const strike = tier.streetRate > tier.webRate
           const bigPrice = promo ? (free ? 'Free' : formatPrice(tier.promoRate!)) : formatPrice(tier.webRate)
@@ -89,7 +92,7 @@ export default function TierAccordion({ unit, mode, allowWaitlist, onChoose }: P
                       </span>
                     )
                   )}
-                  {promo && selected && (
+                  {promo && selected && !sharedOffer && (
                     <span className="rounded-md bg-brand-100 px-2 py-1 text-xs font-semibold leading-tight text-brand-dark">{tier.promoName}</span>
                   )}
                 </span>
@@ -97,7 +100,7 @@ export default function TierAccordion({ unit, mode, allowWaitlist, onChoose }: P
                 {!unavailable && (
                   <span className="flex shrink-0 flex-col items-end gap-0.5 whitespace-nowrap text-right">
                     <span className={`text-xs ${promo ? 'font-semibold text-navy' : 'font-medium text-slate-500'}`}>{promo ? labels.promo : 'Regular rate'}</span>
-                    <span className={`font-display text-2xl font-extrabold leading-none ${promo ? 'text-brand' : 'text-navy'}`}>{bigPrice}</span>
+                    <span className={`font-display text-2xl font-extrabold leading-none ${promo ? 'text-[#15803D]' : 'text-navy'}`}>{bigPrice}</span>
                     {promo ? (
                       <span className="text-xs text-slate-500">then {formatPrice(tier.webRate)}/mo</span>
                     ) : strike ? (
@@ -111,6 +114,9 @@ export default function TierAccordion({ unit, mode, allowWaitlist, onChoose }: P
 
               {selected && (
                 <div className="pl-8">
+                  {save !== null && save > 0 && (
+                    <p className="mb-2 w-fit rounded-full bg-[#DCFCE7] px-2.5 py-0.5 text-[13px] font-bold text-[#166534]">Save {formatPrice(save)}</p>
+                  )}
                   {tier.copy && <p className="hidden text-sm text-slate-500 sm:block">{tier.copy}</p>}
                   {tier.features.length > 0 && (
                     <ul className={`flex flex-col gap-2 text-sm text-slate-800 ${tier.copy ? 'sm:mt-3' : ''}`}>
@@ -135,6 +141,7 @@ export default function TierAccordion({ unit, mode, allowWaitlist, onChoose }: P
       </div>
 
       <div className="shrink-0 border-t border-slate-200 pb-[env(safe-area-inset-bottom)] pt-3">
+        <PopupNotes compact className="mb-2.5" />
         <button
           type="button"
           disabled={cantContinue}

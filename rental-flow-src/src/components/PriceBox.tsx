@@ -35,7 +35,23 @@ export function priceModel(tier: Tier, soldOut: boolean, byPhone: boolean) {
   return { promo, inStore, strip, left, right }
 }
 
-export default function PriceBox({ tier, multi, soldOut, byPhone = false }: { tier: Tier; multi: boolean; soldOut: boolean; byPhone?: boolean }) {
+// `popup` = the tier popup's version: no bottom bar (the popup says rate lock and disc lock once, under the tiers) and a shorter box.
+// `sharedOffer` = the popup's banner already names the promotion, so the strip only says how much it saves.
+export default function PriceBox({
+  tier,
+  multi,
+  soldOut,
+  byPhone = false,
+  popup = false,
+  sharedOffer = false,
+}: {
+  tier: Tier
+  multi: boolean
+  soldOut: boolean
+  byPhone?: boolean
+  popup?: boolean
+  sharedOffer?: boolean
+}) {
   const { promo, inStore, strip, left, right } = priceModel(tier, soldOut, byPhone)
 
   // Both prices in a box share one size. A price with cents ("$44.50") is wider, so the pair steps down a size to fit its half.
@@ -58,13 +74,21 @@ export default function PriceBox({ tier, multi, soldOut, byPhone = false }: { ti
     </div>
   )
 
-  const showLock = config.rateLock.enabled && !soldOut
-  const showFree = config.discLock.enabled && !soldOut
-  const showNote = multi && !soldOut && !!config.priceNote
+  const showLock = !popup && config.rateLock.enabled && !soldOut
+  const showFree = !popup && config.discLock.enabled && !soldOut
+  const showNote = !popup && multi && !soldOut && !!config.priceNote
+  const saveOnly = sharedOffer && promo && strip !== null
 
   return (
-    <div className={`flex h-[172px] w-full flex-col overflow-hidden rounded-xl border ${soldOut ? 'border-slate-200 bg-[#F8FAFC]' : 'border-brand-100 bg-white'}`}>
-      {strip && (
+    <div className={`flex ${popup ? 'h-[136px]' : 'h-[172px]'} w-full flex-col overflow-hidden rounded-xl border ${soldOut ? 'border-slate-200 bg-[#F8FAFC]' : 'border-brand-100 bg-white'}`}>
+      {strip && saveOnly && (
+        strip.save !== null && (
+          <div className="flex h-[34px] shrink-0 items-center justify-center border-b border-[#CBD5E1] bg-[#DCFCE7] px-3 text-[13px] font-extrabold text-[#14532D]">
+            Save {formatPrice(strip.save)}
+          </div>
+        )
+      )}
+      {strip && !saveOnly && (
         <div className="flex h-[42px] shrink-0 items-center justify-between gap-2 border-b border-[#CBD5E1] bg-[#DCFCE7] px-3">
           <span className="line-clamp-2 min-w-0 text-[12.5px] font-extrabold leading-tight text-[#14532D]" title={strip.text}>
             {strip.text}

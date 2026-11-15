@@ -1,10 +1,12 @@
 import { useEffect, useRef, useState } from 'react'
-import { Check, Lock, X } from 'lucide-react'
+import { Check, X } from 'lucide-react'
 import type { Tier, UnitOption } from '../lib/units'
-import { availabilityBadge, typeLabel, withoutPromo } from '../lib/units'
+import { availabilityBadge, sharedPromo, typeLabel, withoutPromo } from '../lib/units'
 import { config, type CheckoutMode } from '../config'
 import RichText from './RichText'
-import Price, { needsSmallPrice } from './Price'
+import PriceBox from './PriceBox'
+import PromoBanner from './PromoBanner'
+import PopupNotes from './PopupNotes'
 import TierAccordion from './TierAccordion'
 
 // Same breakpoint as Tailwind's `lg`: three side-by-side cards from here up, the accordion below.
@@ -50,12 +52,8 @@ export default function TierModal({ unit, mode, allowWaitlist = true, onClose, o
   // The waitlist is only offered when every tier is sold out. If any tier has
   // units, a sold-out tier is just shown as sold out so people pick what is open.
   const anyAvailable = unit.tiers.some((t) => t.available > 0)
-  // One price size across the row: if any tier needs the smaller size, all of them use it.
-  // Every card stacks its prices together if any one of them is too narrow for side by side.
-  const [fits, setFits] = useState<Record<string, boolean>>({})
-  const reportFit = (name: string, ok: boolean) => setFits((prev) => (prev[name] === ok ? prev : { ...prev, [name]: ok }))
-  const stackRow = Object.values(fits).some((ok) => !ok)
-  const anySmall = unit.tiers.some((t) => t.available > 0 && needsSmallPrice(t))
+  // One promotion on every open tier: said once in a banner, and each price box only shows the saving.
+  const shared = sharedPromo(unit.tiers)
 
   return (
     <div className="fixed inset-0 z-[2147483000] flex items-end justify-center bg-navy/65 pt-3 sm:items-center sm:p-4" onClick={onClose}>
@@ -81,19 +79,10 @@ export default function TierModal({ unit, mode, allowWaitlist = true, onClose, o
           </button>
         </div>
 
-        {config.discLock.enabled && (
-          <div className="mb-4 flex shrink-0 items-center gap-2.5 rounded-[10px] border border-brand-100 bg-brand-50 px-3 py-2 text-[13px] leading-snug text-navy lg:mb-7 lg:gap-3 lg:px-4 lg:py-2.5 lg:text-[15px]">
-            <span className="grid size-6 shrink-0 place-items-center rounded-full bg-brand-dark text-white lg:size-7">
-              <Lock size={14} aria-hidden="true" />
-            </span>
-            <span>
-              <RichText text={desktop ? config.discLock.popupText : config.discLock.popupTextShort} />
-            </span>
-          </div>
-        )}
+        {shared && <PromoBanner text={shared.text} save={shared.save} />}
 
         {!desktop ? (
-          <TierAccordion unit={unit} mode={mode} allowWaitlist={allowWaitlist} onChoose={onChoose} />
+          <TierAccordion unit={unit} mode={mode} allowWaitlist={allowWaitlist} sharedOffer={!!shared} onChoose={onChoose} />
         ) : (
         <div className={`grid items-stretch gap-4 ${cols}`}>
           {unit.tiers.map((tier) => {
@@ -137,7 +126,7 @@ export default function TierModal({ unit, mode, allowWaitlist = true, onClose, o
                   </div>
                 ) : (
                   <div className="my-5">
-                    <Price tier={soldOut ? withoutPromo(tier) : tier} small={anySmall} stack={stackRow} onFit={(fits) => reportFit(tier.name, fits)} />
+                    <PriceBox tier={soldOut ? withoutPromo(tier) : tier} multi={false} soldOut={soldOut} popup sharedOffer={!!shared} />
                   </div>
                 )}
                 <ul className={`flex flex-1 flex-col gap-3 text-sm ${unavailable ? 'text-slate-500' : 'text-slate-800'}`}>
@@ -172,6 +161,7 @@ export default function TierModal({ unit, mode, allowWaitlist = true, onClose, o
           })}
         </div>
         )}
+        {desktop && <PopupNotes className="mt-4" />}
       </div>
     </div>
   )
