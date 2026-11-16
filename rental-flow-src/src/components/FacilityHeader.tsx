@@ -54,7 +54,7 @@ export default function FacilityHeader({ info = {}, infoReady = true, phoneReady
         {fmt(shownRating.rating)} ({shownRating.count} reviews)
       </span>
     )
-    const btn = 'inline-flex h-10 min-w-0 cursor-pointer items-center justify-center gap-1.5 whitespace-nowrap rounded-[10px] border-[1.5px] border-slate-300 bg-white px-2 text-sm font-semibold text-brand-dark max-[399px]:gap-1 max-[399px]:px-1.5 max-[399px]:text-[13px]'
+    const btn = 'inline-flex h-11 min-w-0 cursor-pointer items-center justify-center gap-1.5 whitespace-nowrap rounded-[10px] border-[1.5px] border-slate-300 bg-white px-2 text-sm font-semibold text-brand-dark max-[399px]:gap-1 max-[399px]:px-1.5 max-[399px]:text-[13px]'
     return (
       <section className="mb-4 rounded-2xl border border-slate-200 bg-white p-3">
         <div className="flex items-center gap-3">
@@ -141,10 +141,10 @@ export default function FacilityHeader({ info = {}, infoReady = true, phoneReady
           ))}
           {f.photos.length > 1 && (
             <>
-              <button type="button" onClick={() => go(-1)} aria-label="Previous photo" className="absolute left-3 top-1/2 grid size-9 -translate-y-1/2 cursor-pointer place-items-center rounded-full bg-white/95 text-navy shadow hover:bg-white">
+              <button type="button" onClick={() => go(-1)} aria-label="Previous photo" className="absolute left-3 top-1/2 grid size-11 -translate-y-1/2 cursor-pointer place-items-center rounded-full bg-white/95 text-navy shadow hover:bg-white">
                 <ChevronLeft size={18} />
               </button>
-              <button type="button" onClick={() => go(1)} aria-label="Next photo" className="absolute right-3 top-1/2 grid size-9 -translate-y-1/2 cursor-pointer place-items-center rounded-full bg-white/95 text-navy shadow hover:bg-white">
+              <button type="button" onClick={() => go(1)} aria-label="Next photo" className="absolute right-3 top-1/2 grid size-11 -translate-y-1/2 cursor-pointer place-items-center rounded-full bg-white/95 text-navy shadow hover:bg-white">
                 <ChevronRight size={18} />
               </button>
               <div className="absolute bottom-3 left-1/2 flex -translate-x-1/2 gap-1.5">
@@ -181,7 +181,7 @@ export default function FacilityHeader({ info = {}, infoReady = true, phoneReady
             </div>
             {infoReady ? <p className="text-sm text-slate-500">{f.cityLine}</p> : <Bar w="w-40" />}
             {phoneReady ? (
-              <a href={f.phoneHref} className="mt-2 inline-flex items-center gap-1.5 text-sm font-semibold text-brand hover:text-brand-dark">
+              <a href={f.phoneHref} className="mt-2 -mb-2 inline-flex py-2.5 items-center gap-1.5 text-sm font-semibold text-brand hover:text-brand-dark">
                 <Phone size={14} aria-hidden="true" />
                 {f.phoneDisplay}
               </a>

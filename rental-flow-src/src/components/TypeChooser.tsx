@@ -99,7 +99,7 @@ export default function TypeChooser({ size, units, allowWaitlist = true, onClose
             </h2>
             <p className="mt-1 text-sm text-slate-500">Same size, different access. Pick what suits your stuff.</p>
           </div>
-          <button type="button" onClick={onClose} aria-label="Close" className="grid size-10 shrink-0 cursor-pointer place-items-center rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200">
+          <button type="button" onClick={onClose} aria-label="Close" className="grid size-11 shrink-0 cursor-pointer place-items-center rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200">
             <X size={20} />
           </button>
         </div>

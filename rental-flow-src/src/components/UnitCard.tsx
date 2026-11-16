@@ -21,7 +21,7 @@ type Props = {
   underHeading?: boolean
 }
 
-const link = 'cursor-pointer text-[13px] font-bold text-brand-dark underline hover:text-navy'
+const link = 'cursor-pointer -my-2 py-3 text-[13px] font-bold text-brand-dark underline hover:text-navy'
 
 export default function UnitCard({ unit, onSelect, allowReservations = true, allowWaitlist = true, phone = null, onCall, hideTypePill = false, underHeading = false }: Props) {
   const compact = useCompact()

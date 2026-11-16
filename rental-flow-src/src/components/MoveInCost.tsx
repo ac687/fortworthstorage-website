@@ -96,7 +96,7 @@ export default function MoveInCost({ tier, multi = false, onRent }: { tier: Tier
     <>
       <div className="mb-1.5 flex items-center justify-between">
         <b className="text-base text-navy">What's due today?</b>
-        <button type="button" onClick={() => setOpen(false)} aria-label="Close" className="cursor-pointer rounded p-1 text-slate-500 hover:text-slate-800">
+        <button type="button" onClick={() => setOpen(false)} aria-label="Close" className="-m-2 cursor-pointer rounded p-3 text-slate-500 hover:text-slate-800">
           <X size={18} />
         </button>
       </div>
@@ -149,7 +149,7 @@ export default function MoveInCost({ tier, multi = false, onRent }: { tier: Tier
 
   return (
     <div ref={wrap} className="relative text-center">
-      <button type="button" onClick={toggle} aria-expanded={open} className="inline-flex cursor-pointer items-center gap-1 whitespace-nowrap text-[13px] font-bold text-brand-dark underline hover:text-navy">
+      <button type="button" onClick={toggle} aria-expanded={open} className="inline-flex cursor-pointer items-center gap-1 whitespace-nowrap text-[13px] -my-2 py-3 font-bold text-brand-dark underline hover:text-navy">
         What's due today? <Chev size={14} aria-hidden="true" />
       </button>
       {open && !phone && (

@@ -328,7 +328,7 @@ export default function App({ host, layer }: { host: HTMLElement; layer: HTMLEle
       type="button"
       onClick={() => setFilter(value)}
       aria-pressed={filter === value}
-      className={`cursor-pointer px-4 py-2 sm:px-5 ${first ? '' : 'border-l border-navy'} ${filter === value ? 'bg-navy text-white' : 'text-navy hover:bg-slate-100'}`}
+      className={`cursor-pointer px-4 py-2 max-lg:min-h-[44px] sm:px-5 ${first ? '' : 'border-l border-navy'} ${filter === value ? 'bg-navy text-white' : 'text-navy hover:bg-slate-100'}`}
     >
       {label}
     </button>
@@ -365,7 +365,7 @@ export default function App({ host, layer }: { host: HTMLElement; layer: HTMLEle
                   <select
                     value={sort}
                     onChange={(e) => setSort(e.target.value as Sort)}
-                    className="cursor-pointer appearance-none rounded-full border border-slate-300 bg-white py-2 pl-4 pr-9 text-xs font-medium text-slate-800"
+                    className="cursor-pointer appearance-none min-h-[44px] rounded-full border border-slate-300 bg-white py-2 pl-4 pr-9 text-[13px] font-medium text-slate-800"
                   >
                     <option value="size">Sort: Size</option>
                     <option value="price-asc">Price: Low to High</option>

@@ -68,13 +68,12 @@ export default function TierModal({ unit, mode, allowWaitlist = true, onClose, o
       >
         <div className="mb-4 flex shrink-0 items-start justify-between gap-4 lg:mb-6">
           <div>
-            <p className="hidden text-xs font-bold uppercase tracking-[0.2em] text-slate-500 sm:block">Select your location</p>
-            <h2 id="tu-tier-title" className="sm:mt-1 font-display text-xl font-bold text-navy sm:text-3xl">
+            <h2 id="tu-tier-title" className="font-display text-xl font-bold text-navy sm:text-3xl">
               Choose Your {unit.width}' x {unit.depth}' {typeLabel(unit.category, unit.unitType)} Unit
             </h2>
             <p className="mt-1 hidden text-sm text-slate-500 sm:block">Upgrade for closer access, flexible terms, and maximum convenience.</p>
           </div>
-          <button type="button" onClick={onClose} aria-label="Close" className="grid size-10 shrink-0 cursor-pointer place-items-center rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200">
+          <button type="button" onClick={onClose} aria-label="Close" className="grid size-11 shrink-0 cursor-pointer place-items-center rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200">
             <X size={20} />
           </button>
         </div>

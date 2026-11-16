@@ -60,7 +60,7 @@ export const config = {
     facilityUuid: '7ea9ca6e-cfcc-11f0-887a-5565cdff6098',
     // Same branding settings as the original Fort Worth Storage iframe.
     params:
-      'logoenab=null&faviconenab=dc8b5810-27a6-11f1-81b2-2b540d0228d7&pcolor=%231769B3&scolor=%231769B3&trackerenab=true&apayreq=false&tcreq=true&globalbrandingenab=false',
+      'logoenab=null&faviconenab=dc8b5810-27a6-11f1-81b2-2b540d0228d7&pcolor=%23c2410c&scolor=%231f2e4e&trackerenab=true&apayreq=false&tcreq=true&globalbrandingenab=false',
     trustedOrigins: ['https://tenant-suite.prd.monument.io', 'https://tenant-suite.stg.monument.io'],
   },
 

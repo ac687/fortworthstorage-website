@@ -128,7 +128,7 @@
   }
   function pill(pr) {
     var e = mk('span', 'display:inline-block;max-width:100%;box-sizing:border-box;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;' +
-      'background:#dbe3f4;color:#344e8b;border-radius:999px;padding:4px 10px;font:600 11px/1.2 Inter,Arial,sans-serif', pr.name)
+      'background:#dcfce7;color:#166534;border-radius:999px;padding:4px 10px;font:600 11px/1.2 Inter,Arial,sans-serif', pr.name)
     e.title = pr.name
     e.setAttribute('data-promo-pill', '')
     return e

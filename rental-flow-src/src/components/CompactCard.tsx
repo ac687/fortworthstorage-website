@@ -16,7 +16,7 @@ type Props = {
   underHeading: boolean
 }
 
-const link = 'cursor-pointer whitespace-nowrap py-1 text-[13px] leading-5 font-bold text-brand-dark underline hover:text-navy'
+const link = 'cursor-pointer whitespace-nowrap py-1 -my-2 py-3 text-[13px] leading-5 font-bold text-brand-dark underline hover:text-navy'
 
 // Short type name for the size line, used when the card is not under a type heading.
 function shortType(unit: UnitOption): string {
@@ -54,9 +54,9 @@ export default function CompactCard({ unit, onSelect, allowReservations, allowWa
         >
           {h.free ? '$0' : formatPrice(h.price)}
         </span>
-        {!h.free && <span className="text-[11px] font-medium text-[#475569]">/mo</span>}
+        {!h.free && <span className="text-xs font-medium text-[#475569]">/mo</span>}
       </div>
-      <div className="mt-1 whitespace-nowrap text-[11px] leading-none text-[#475569]">{h.label}</div>
+      <div className="mt-1 whitespace-nowrap text-xs leading-none text-[#475569]">{h.label}</div>
     </div>
   )
 
@@ -72,7 +72,7 @@ export default function CompactCard({ unit, onSelect, allowReservations, allowWa
       <div className="flex flex-col gap-2">
         {badge && (
           // "Only 2 left" and "Waitlist only" sit on the top edge, next to the "Most popular size" ribbon, so the size row stays clean.
-          <span className={`absolute -top-3 right-4 whitespace-nowrap rounded-full border px-2.5 py-1 text-[11px] font-extrabold leading-none ${badge.tone === 'red' ? 'border-[#fecaca] bg-[#FEE2E2] text-[#991B1B]' : 'border-slate-300 bg-slate-100 text-[#334155]'}`}>
+          <span className={`absolute -top-3 right-4 whitespace-nowrap rounded-full border px-2.5 py-1 text-xs font-extrabold leading-none ${badge.tone === 'red' ? 'border-[#fecaca] bg-[#FEE2E2] text-[#991B1B]' : 'border-slate-300 bg-slate-100 text-[#334155]'}`}>
             {badge.text}
           </span>
         )}
@@ -95,7 +95,7 @@ export default function CompactCard({ unit, onSelect, allowReservations, allowWa
               {strip.text}
             </span>
             {strip.save !== null && (
-              <span className="shrink-0 whitespace-nowrap rounded-full bg-[#DCFCE7] px-2 py-0.5 text-[11px] font-extrabold text-[#166534]">
+              <span className="shrink-0 whitespace-nowrap rounded-full bg-[#DCFCE7] px-2 py-0.5 text-xs font-extrabold text-[#166534]">
                 Save {formatPrice(strip.save)}
                 {!promo ? '/mo' : ''}
               </span>
@@ -118,7 +118,7 @@ export default function CompactCard({ unit, onSelect, allowReservations, allowWa
               ) : (
                 <span className="block h-[44px] w-full animate-pulse rounded-full bg-slate-200" aria-hidden="true" />
               )}
-              <p className="text-center text-xs text-[#475569]">Parking is rented by phone</p>
+              <p className="text-center text-[13px] text-[#475569]">Parking is rented by phone</p>
             </>
           ) : soldOut && !allowWaitlist ? (
             <span className={`${btn} bg-slate-100 text-[13px] font-semibold text-[#475569] ${side}`}>Currently unavailable</span>
@@ -136,7 +136,7 @@ export default function CompactCard({ unit, onSelect, allowReservations, allowWa
         {!byPhone && !soldOut && (showCost || allowReservations || showNote) && (
           // Note on the left, links on the right, all on one text baseline. Under 360px the links come first and the note sits centred below.
           <div className="flex items-baseline justify-between gap-x-3 max-[369px]:flex-col max-[369px]:items-stretch max-[369px]:gap-y-0.5">
-            {showNote && <span className="whitespace-nowrap text-[11px] leading-5 text-[#64748b] max-[369px]:order-2 max-[369px]:text-center">{config.priceNote}</span>}
+            {showNote && <span className="whitespace-nowrap text-xs leading-5 text-[#64748b] max-[369px]:order-2 max-[369px]:text-center">{config.priceNote}</span>}
             <span className={`inline-flex items-baseline gap-x-3.5 max-[369px]:order-1 max-[369px]:w-full max-[369px]:justify-between ${showNote ? '' : 'ml-auto'}`}>
               {showCost && <MoveInCost tier={unit.fromTier} multi={multi} onRent={() => onSelect(unit, 'rent')} />}
               {allowReservations && (
