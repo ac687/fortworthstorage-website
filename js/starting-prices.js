@@ -133,9 +133,22 @@
     if (text != null) e.textContent = text
     return e
   }
+  // "Second Month Free" -> "Second month free". Same rule as the rental flow's unit cards: only plain Title Case words after
+  // the first are lowercased, so acronyms, numbers, holiday and month names keep their capitals.
+  var KEEP = ['Black','Friday','Cyber','Monday','Christmas','Thanksgiving','Easter','Halloween','Labor','Memorial','Independence','Veterans','Presidents','Valentine','Valentines','January','February','March','April','June','July','August','September','October','November','December','Spring','Summer']
+  function sentenceCase(text) {
+    var words = String(text).split(' ')
+    return words.map(function (w, i) {
+      if (i === 0 || !/^[A-Z][a-z]+[,.!:;]?$/.test(w)) return w
+      var bare = w.replace(/[,.!:;]$/, '')
+      if (KEEP.indexOf(bare) > -1) return w
+      if ((bare === 'Day' || bare === 'Days') && KEEP.indexOf(String(words[i - 1]).replace(/[,.!:;]$/, '')) > -1) return w
+      return w.toLowerCase()
+    }).join(' ')
+  }
   function pill(pr) {
     var e = mk('span', 'display:inline-block;max-width:100%;box-sizing:border-box;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;' +
-      'background:#dcfce7;color:#166534;border-radius:999px;padding:4px 10px;font:600 11px/1.2 Inter,Arial,sans-serif', pr.name)
+      'background:#dcfce7;color:#166534;border-radius:999px;padding:4px 10px;font:600 11px/1.2 Inter,Arial,sans-serif;text-transform:none', sentenceCase(pr.name))
     e.title = pr.name
     e.setAttribute('data-promo-pill', '')
     return e
@@ -162,7 +175,7 @@
     row.appendChild(pill(pr))
     if (line && line.parentNode) line.parentNode.insertBefore(row, line)
     else el.parentNode.insertBefore(row, el.parentNode.firstChild)
-    el.parentNode.insertBefore(terms(pr, 'white-space:nowrap'), el.nextSibling)
+    el.parentNode.insertBefore(terms(pr, 'text-transform:none'), el.nextSibling)
   }
   // Climate controlled page cards: pill at the top of the card, price and terms in place.
   function renderCC(el, pr) {
