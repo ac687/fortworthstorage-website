@@ -4,7 +4,7 @@ import type { FacilityInfo, Tier, UnitOption } from '../lib/units'
 import { formatPrice, promoLabels, typeLabel } from '../lib/units'
 import { moveInEstimate, todayAtFacility, type Estimate } from '../lib/estimate'
 import { estimateFromCart, fetchCart } from '../lib/cart'
-import EstimateCard from './EstimateCard'
+import EstimatePopup from './EstimatePopup'
 import { config, monumentCheckoutUrl, type CheckoutMode } from '../config'
 import { trackMonumentEvent } from '../lib/analytics'
 
@@ -26,8 +26,6 @@ const modeTitle: Record<CheckoutMode, string> = {
 export default function CheckoutPanel({ unit, tier, mode, onBack, scrollToTop, facility = {} }: Props) {
   const iframeRef = useRef<HTMLIFrameElement>(null)
   const [height, setHeight] = useState(1000)
-  // Starts collapsed (the header still shows the total); a tap opens the line items.
-  const [estimateCollapsed, setEstimateCollapsed] = useState(true)
   // Monument shows its own cart once the details form is done, so the estimate goes away then.
   const [estimateDone, setEstimateDone] = useState(false)
   // Add ?tudebug=1 to the page address to see every message Monument sends to the
@@ -102,7 +100,6 @@ export default function CheckoutPanel({ unit, tier, mode, onBack, scrollToTop, f
   }, [mode, tier.unitGroupUuid, tier.promotionUuid])
   const estimate = cartEstimate ?? calcEstimate
   const src = monumentCheckoutUrl(tier.unitGroupUuid, mode)
-  const sizeInfo = config.sizeInfo[`${unit.width}x${unit.depth}`]
 
   // Monument talks to the parent page with postMessage:
   //  - a number      → new content height for the iframe
@@ -159,54 +156,31 @@ export default function CheckoutPanel({ unit, tier, mode, onBack, scrollToTop, f
       </div>
 
       <section className="mb-4 rounded-2xl border border-slate-200 bg-white p-5" aria-label="Your selection">
-        <div className={estimate && !estimateDone ? 'grid gap-4 md:grid-cols-2 md:items-start md:gap-6' : ''}>
+        <div className="md:flex md:items-center md:justify-between md:gap-8">
           <div>
             <p className="text-xs font-bold uppercase tracking-wider text-slate-500">{modeTitle[mode]}</p>
-            <div className="mt-1 flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2">
-              <h2 className="font-display text-xl font-bold text-navy sm:text-2xl">
-                {unit.width}' x {unit.depth}' {typeLabel(unit.category, unit.unitType)}
-              </h2>
-              <p className="text-sm text-slate-700">
-                {tier.promoRate !== null ? (
-                  <>
-                    <b className="text-brand">{tier.promoRate === 0 ? 'Free' : `${formatPrice(tier.promoRate)}/mo`}</b>{' '}
-                    {/* Same duration the unit cards show; unknown durations stay generic. */}
-                    {promoLabels(tier).sentence}{' '}
-                    <b className="text-navy">{formatPrice(tier.webRate)}/mo</b>
-                  </>
-                ) : (
+            <h2 className="mt-1 font-display text-xl font-bold text-navy sm:text-2xl">
+              {unit.width}' x {unit.depth}' {typeLabel(unit.category, unit.unitType)}
+            </h2>
+            <p className="mt-1 text-sm text-slate-700">
+              {tier.promoRate !== null ? (
+                <>
+                  <b className="text-brand">{tier.promoRate === 0 ? 'Free' : `${formatPrice(tier.promoRate)}/mo`}</b>{' '}
+                  {/* Same duration the unit cards show; unknown durations stay generic. */}
+                  {promoLabels(tier).sentence}{' '}
                   <b className="text-navy">{formatPrice(tier.webRate)}/mo</b>
-                )}
-              </p>
-            </div>
+                </>
+              ) : (
+                <b className="text-navy">{formatPrice(tier.webRate)}/mo</b>
+              )}
+            </p>
             {!estimate && <p className="mt-2 text-xs text-slate-500">Your final total, including any fees, taxes and protection plan, is shown below before you pay.</p>}
-            {estimate && !estimateDone && sizeInfo && (
-              // Desktop only: fills the space beside the estimate without pushing the estimate down on phones.
-              <div className="mt-5 hidden md:block">
-                {sizeInfo.summary && <p className="text-sm text-slate-600">{sizeInfo.summary}</p>}
-                {sizeInfo.fits.length > 0 && (
-                  <>
-                    <p className="mt-3.5 text-xs font-semibold uppercase tracking-wider text-slate-500">What fits</p>
-                    <ul className="mt-2 flex flex-wrap gap-2">
-                      {sizeInfo.fits.map((f) => (
-                        <li key={f} className="rounded-full border border-brand-100 bg-brand-50 px-3 py-1.5 text-[13px] text-navy">
-                          {f}
-                        </li>
-                      ))}
-                    </ul>
-                  </>
-                )}
-                <p className="mt-4 text-[13px] text-slate-600">
-                  Not sure it fits?{' '}
-                  <a href={config.sizeGuidePath} target="_blank" rel="noopener" className="font-semibold text-brand underline hover:text-brand-dark">
-                    See the size guide
-                  </a>
-                  .
-                </p>
-              </div>
-            )}
           </div>
-          {estimate && !estimateDone && <EstimateCard estimate={estimate} collapsed={estimateCollapsed} onToggle={() => setEstimateCollapsed((c) => !c)} />}
+          {estimate && !estimateDone && (
+            <div className="mt-4 md:mt-0 md:w-[430px] md:shrink-0">
+              <EstimatePopup estimate={estimate} />
+            </div>
+          )}
         </div>
       </section>
 
