@@ -561,3 +561,8 @@ div.pk-price.pk-price { color: var(--tu-navy); }
   border: 1.5px solid var(--tu-border-strong);
 }
 .sz-strip.sz-strip-home .sz-strip-pills a:hover { background: var(--tu-navy); border-color: var(--tu-navy); color: #fff; }
+
+/* Home: link to the Areas We Serve hub under "Serving Fort Worth & Tarrant County" */
+.tu-areas-link { text-align: center; margin: -12px 0 0; }
+.tu-areas-link a { display: inline-flex; align-items: center; min-height: 44px; font-weight: 600; font-size: 16px; color: var(--tu-navy); text-decoration: underline; text-underline-offset: 3px; }
+.tu-areas-link a:hover { color: var(--tu-brand-strong, #344e8b); }
