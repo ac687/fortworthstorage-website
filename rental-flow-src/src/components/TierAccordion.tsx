@@ -6,6 +6,7 @@ import { availabilityBadge, cardLabels, formatPrice, promoLabels, withoutPromo }
 import type { CheckoutMode } from '../config'
 import RichText from './RichText'
 import PopupNotes from './PopupNotes'
+import { priceModel } from './PriceBox'
 
 type Props = {
   unit: UnitOption
@@ -54,6 +55,9 @@ export default function TierAccordion({ unit, mode, allowWaitlist, sharedOffer, 
           const labels = promoLabels(tier)
           const strike = tier.streetRate > tier.webRate
           const bigPrice = promo ? (free ? 'Free' : formatPrice(tier.promoRate!)) : formatPrice(tier.webRate)
+          // A promotion that starts with the second payment (e.g. Second month free): the row leads with this month's
+          // regular rent and says what changes in month 2; the open row shows the three months in order.
+          const monthCells = promo && !unavailable ? priceModel(tier, false, false).three : null
           return (
             <div
               key={tier.unitGroupUuid}
@@ -98,6 +102,15 @@ export default function TierAccordion({ unit, mode, allowWaitlist, sharedOffer, 
                 </span>
 
                 {!unavailable && (
+                  monthCells ? (
+                    <span className="flex shrink-0 flex-col items-end gap-0.5 whitespace-nowrap text-right">
+                      <span className="text-xs font-medium text-slate-500">Month 1</span>
+                      <span className="font-display text-2xl font-extrabold leading-none text-navy">{formatPrice(tier.webRate)}</span>
+                      <span className="text-xs font-semibold text-[#15803D]">
+                        {monthCells[1].label}: {free ? 'free' : `${formatPrice(tier.promoRate!)}/mo`}
+                      </span>
+                    </span>
+                  ) : (
                   <span className="flex shrink-0 flex-col items-end gap-0.5 whitespace-nowrap text-right">
                     <span className={`text-xs ${promo ? 'font-semibold text-navy' : 'font-medium text-slate-500'}`}>{promo ? labels.promo : 'Regular rate'}</span>
                     <span className={`font-display text-2xl font-extrabold leading-none ${promo ? 'text-[#15803D]' : 'text-navy'}`}>{bigPrice}</span>
@@ -109,6 +122,7 @@ export default function TierAccordion({ unit, mode, allowWaitlist, sharedOffer, 
                       <span className="text-xs text-slate-500">per month</span>
                     )}
                   </span>
+                  )
                 )}
               </button>
 
@@ -116,6 +130,16 @@ export default function TierAccordion({ unit, mode, allowWaitlist, sharedOffer, 
                 <div className="pl-8">
                   {save !== null && save > 0 && (
                     <p className="mb-2 w-fit rounded-full bg-[#DCFCE7] px-2.5 py-0.5 text-[13px] font-bold text-[#166534]">Save {formatPrice(save)}</p>
+                  )}
+                  {monthCells && (
+                    <div className="mb-3 grid grid-cols-3 overflow-hidden rounded-lg border border-brand-100 text-center">
+                      {monthCells.map((c, ci) => (
+                        <div key={ci} className={`min-w-0 px-1 py-2 ${ci > 0 ? 'border-l border-brand-100' : ''} ${ci === 1 ? 'bg-[#DCFCE7]' : ''}`}>
+                          <div className={`font-display text-[17px] font-extrabold leading-none ${c.promo ? 'text-[#15803D]' : 'text-navy'}`}>{c.free ? '$0' : formatPrice(c.price)}</div>
+                          <div className="mt-1 whitespace-nowrap text-[11px] text-slate-600">{c.label}</div>
+                        </div>
+                      ))}
+                    </div>
                   )}
                   {tier.copy && <p className="hidden text-sm text-slate-500 sm:block">{tier.copy}</p>}
                   {tier.features.length > 0 && (
@@ -128,7 +152,7 @@ export default function TierAccordion({ unit, mode, allowWaitlist, sharedOffer, 
                       ))}
                     </ul>
                   )}
-                  {promo && tier.promoFirstFullMonth && (
+                  {promo && tier.promoFirstFullMonth && !monthCells && (
                     <p className="mt-2.5 border-t border-slate-200 pt-2.5 text-xs text-slate-500">
                       {config.estimate.billingMode === 'anniversary' ? 'Your first month is billed at the regular rate.' : 'Move-in month is prorated at the regular rate.'}
                     </p>
