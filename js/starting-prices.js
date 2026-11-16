@@ -69,7 +69,7 @@
 
   // Lowest web rate per size, overall and per unit category, plus the best promotional price per size.
   function lowest(groups) {
-    var all = {}, byType = {}, promoAll = {}, promoByType = {}, availAll = {}, availByType = {}
+    var all = {}, byType = {}, promoAll = {}, promoByType = {}, availAll = {}, availByType = {}, aRate = {}, aRateByType = {}
     groups.forEach(function (g) {
       var k = key(g)
       // Units free to rent, counted like the rental flow does (missing = none). A size is only
@@ -87,6 +87,12 @@
       var bt = byType[t] || (byType[t] = {})
       if (all[k] == null || rate < all[k]) all[k] = rate
       if (bt[k] == null || rate < bt[k]) bt[k] = rate
+      // Lowest rate among groups someone can actually rent (used for structured data, so sold-out units are not advertised).
+      if (n > 0) {
+        var art = aRateByType[t] || (aRateByType[t] = {})
+        if (aRate[k] == null || rate < aRate[k]) aRate[k] = rate
+        if (art[k] == null || rate < art[k]) art[k] = rate
+      }
       // A promotion is only shown from a group someone can actually rent.
       var pr = n > 0 ? promoFor(g, rate) : null
       if (pr) {
@@ -95,7 +101,7 @@
         if (!pt[k] || pr.price < pt[k].price) pt[k] = pr
       }
     })
-    return { all: all, byType: byType, promoAll: promoAll, promoByType: promoByType, availAll: availAll, availByType: availByType }
+    return { all: all, byType: byType, promoAll: promoAll, promoByType: promoByType, availAll: availAll, availByType: availByType, availRate: aRate, availRateByType: aRateByType }
   }
 
   // Rent buttons marked data-availability="WxD" (optionally data-availability-type="Temperature Controlled")
@@ -146,8 +152,8 @@
       return w.toLowerCase()
     }).join(' ')
   }
-  function pill(pr) {
-    var e = mk('span', 'display:inline-block;max-width:100%;box-sizing:border-box;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;' +
+  function pill(pr, wrap) {
+    var e = mk('span', 'display:inline-block;max-width:100%;box-sizing:border-box;overflow:hidden;' + (wrap ? 'white-space:normal;text-align:center;' : 'text-overflow:ellipsis;white-space:nowrap;') +
       'background:#dcfce7;color:#166534;border-radius:999px;padding:4px 10px;font:600 11px/1.2 Inter,Arial,sans-serif;text-transform:none', sentenceCase(pr.name))
     e.title = pr.name
     e.setAttribute('data-promo-pill', '')
@@ -211,7 +217,7 @@
     el.textContent = ''
     el.style.minWidth = '0'
     var wrap = mk('div', 'display:flex;flex-direction:column;align-items:center;gap:3px;max-width:100%;min-width:0;text-align:center')
-    wrap.appendChild(pill(pr))
+    wrap.appendChild(pill(pr, true))
     var line = mk('div', 'line-height:1.2', money(pr.price) + '/mo ')
     if (!pr.later) line.appendChild(mk('span', 'font-size:13px;font-weight:400;color:#64748b;text-decoration:line-through', money(pr.regular)))
     wrap.appendChild(line)
@@ -254,11 +260,13 @@
   // Keep the Google structured-data offer prices in step with what is shown.
   function sizeKey(w, d) { return Math.min(+w, +d) + 'x' + Math.max(+w, +d) }
   function updateStructuredData(res) {
-    var low = res.all
+    // Prefer the lowest rate that can be rented now; fall back to the lowest overall when a size is sold out everywhere.
+    var low = res.all, avail = res.availRate || {}, availBy = res.availRateByType || {}
     // Pages whose structured-data text quotes prices for one unit type name it on the script tag.
     var ldType = (document.querySelector('script[src*="starting-prices"]') || {}).getAttribute
       ? document.querySelector('script[src*="starting-prices"]').getAttribute('data-ld-price-type') : null
     var typed = ldType ? res.byType[category(ldType)] || {} : null
+    var typedAvail = ldType ? availBy[category(ldType)] || {} : {}
     var tags = document.querySelectorAll('script[type="application/ld+json"]')
     for (var i = 0; i < tags.length; i++) {
       var data
@@ -270,13 +278,13 @@
         var m, cents
         // Product with "@id": ".../#unit-10-20" and an "offers" object
         if (typeof n['@id'] === 'string' && n.offers && (m = n['@id'].match(/#unit-(\d+)-(\d+)$/))) {
-          cents = low[sizeKey(m[1], m[2])]
+          cents = avail[sizeKey(m[1], m[2])] != null ? avail[sizeKey(m[1], m[2])] : low[sizeKey(m[1], m[2])]
           if (cents != null) { n.offers.price = (cents / 100).toFixed(2); changed = true }
         }
         // Offer whose itemOffered is named like "10x20 Storage Unit"
         if (n.itemOffered && typeof n.itemOffered.name === 'string' && 'price' in n &&
             (m = n.itemOffered.name.match(/(\d+)\s*[x\u00d7]\s*(\d+)/))) {
-          cents = low[sizeKey(m[1], m[2])]
+          cents = avail[sizeKey(m[1], m[2])] != null ? avail[sizeKey(m[1], m[2])] : low[sizeKey(m[1], m[2])]
           if (cents != null) {
             n.price = (cents / 100).toFixed(2)
             if (typeof n.itemOffered.description === 'string') {
@@ -290,7 +298,7 @@
           Object.keys(n).forEach(function (k) {
             if (typeof n[k] !== 'string') return
             var s = n[k].replace(/\$[\d.,]+\/mo for a (\d+)\s*[x\u00d7]\s*(\d+)/g, function (all, w, d) {
-              var cents = typed[sizeKey(w, d)]
+              var cents = typedAvail[sizeKey(w, d)] != null ? typedAvail[sizeKey(w, d)] : typed[sizeKey(w, d)]
               return cents != null ? money(cents) + '/mo for a ' + w + '\u00d7' + d : all
             })
             if (s !== n[k]) { n[k] = s; changed = true }
