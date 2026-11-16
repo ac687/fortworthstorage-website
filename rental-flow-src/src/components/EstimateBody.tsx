@@ -1,10 +1,11 @@
-import { Lock } from 'lucide-react'
+import { Lock, Tag } from 'lucide-react'
 import { config } from '../config'
+import { formatPrice } from '../lib/units'
 import { money, type Estimate, type NextMonthPromo, type Upcoming } from '../lib/estimate'
 
 // The line items of the "Estimated due today" estimate: today's charges, the prepaid month, "Coming up" and the notes.
 // Shown inside the popup (EstimatePopup).
-export default function EstimateBody({ estimate: e }: { estimate: Estimate }) {
+export default function EstimateBody({ estimate: e, save = null }: { estimate: Estimate; save?: number | null }) {
   const row = 'flex items-start justify-between gap-4 py-1 text-sm'
   const p = e.prepay
   return (
@@ -21,18 +22,15 @@ export default function EstimateBody({ estimate: e }: { estimate: Estimate }) {
       </div>
       {e.promoDiscount > 0 && (
         <div className={row}>
-          <span className="text-emerald-700">
-            {e.promoName || 'Promotion'}
-            {e.promoMonths !== null && e.promoMonths >= 2 && <span className="block text-xs">Discount 1 of {e.promoMonths}</span>}
-          </span>
-          <span className="text-emerald-700">-{money(e.promoDiscount)}</span>
+          <PromoName name={e.promoName} />
+          <DiscountPill amount={e.promoDiscount} />
         </div>
       )}
       {e.protectionMonthly > 0 && (
         <div className={row}>
           <span className="text-slate-600">
             Protection plan: ${e.protectionCoverage.toLocaleString('en-US')} coverage
-            <span className="block text-xs text-slate-500">{e.prorated ? 'Prorated, same days' : 'First month'}</span>
+            {e.prorated && <span className="block text-xs text-slate-500">Prorated, same days</span>}
           </span>
           <Amount now={e.protection} full={e.prorated ? e.protectionMonthly : undefined} />
         </div>
@@ -53,17 +51,8 @@ export default function EstimateBody({ estimate: e }: { estimate: Estimate }) {
           </div>
           {p.promoDiscount > 0 && (
             <div className={row}>
-              <span className="text-emerald-700">
-                {p.promoName || 'Promotion'}
-                <span className="block text-xs">
-                  {p.promoFirstFullMonth
-                    ? e.promoMonths !== null && e.promoMonths >= 2
-                      ? `Discount 1 of ${e.promoMonths}`
-                      : 'Applies to your first full month'
-                    : `Discount 2 of ${e.promoMonths}`}
-                </span>
-              </span>
-              <span className="text-emerald-700">-{money(p.promoDiscount)}</span>
+              <PromoName name={p.promoName} />
+              <DiscountPill amount={p.promoDiscount} />
             </div>
           )}
           {p.protection > 0 && (
@@ -103,9 +92,12 @@ export default function EstimateBody({ estimate: e }: { estimate: Estimate }) {
         </div>
       )}
       <div className="mt-1 flex items-center justify-between gap-4 border-t border-brand-100 pt-2 text-base font-bold text-navy">
-        <span>Estimated total</span>
+        <span>{p ? 'Estimated total due today' : 'Estimated first month total'}</span>
         <span>{money(e.total)}</span>
       </div>
+      {save !== null && save > 0 && (
+        <div className="mt-2.5 rounded-lg bg-[#dcfce7] px-2.5 py-2 text-center text-[13px] font-bold text-[#166534]">Your savings with this offer: {formatPrice(save)}</div>
+      )}
       {p && (
         <p className="mt-0.5 text-right text-xs text-slate-500">
           Includes {money(p.rent - p.promoDiscount + p.protection)} prepaid for {p.monthName}
@@ -121,9 +113,22 @@ export default function EstimateBody({ estimate: e }: { estimate: Estimate }) {
       )}
       {e.nextMonthPromo && <NextMonthNote n={e.nextMonthPromo} months={e.promoMonths} anniversary={e.dueDay !== null} />}
       {e.promoRequiresAutopay && <p className="mt-2 text-xs font-semibold text-emerald-800">The promotion requires autopay.</p>}
-      <p className="mt-2 text-xs text-slate-500">Estimates only. Taxes and final promotion terms are confirmed on the next step.</p>
+      <p className="mt-2 text-xs text-slate-500">Estimate only. Taxes are calculated at checkout.</p>
     </div>
   )
+}
+
+function PromoName({ name }: { name?: string | null }) {
+  return (
+    <span className="inline-flex items-center gap-1.5 text-sm text-slate-600">
+      <Tag size={14} className="shrink-0 text-emerald-700" aria-hidden="true" />
+      {name || 'Promotion'}
+    </span>
+  )
+}
+
+function DiscountPill({ amount }: { amount: number }) {
+  return <span className="whitespace-nowrap rounded-full bg-[#dcfce7] px-2.5 py-0.5 text-sm font-semibold text-[#166534]">−{money(amount)}</span>
 }
 
 // A prorated amount, with the full monthly price struck through beside it.

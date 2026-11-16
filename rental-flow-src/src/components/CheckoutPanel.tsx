@@ -183,7 +183,7 @@ export default function CheckoutPanel({ unit, tier, mode, onBack, scrollToTop, f
           </div>
           {estimate && !estimateDone && (
             <div className="mt-4 md:mt-0 md:w-[430px] md:shrink-0">
-              <EstimatePopup estimate={estimate} />
+              <EstimatePopup estimate={estimate} save={cardLabels(tier).save} />
             </div>
           )}
         </div>

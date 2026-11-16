@@ -1,4 +1,4 @@
-import { ChevronDown, ChevronUp, X } from 'lucide-react'
+import { ChevronDown, ChevronUp, Tag, X } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { fetchCart, estimateFromCart } from '../lib/cart'
 import { money, moveInEstimate, todayAtFacility, type Estimate } from '../lib/estimate'
@@ -32,21 +32,6 @@ async function loadEstimate(tier: Tier): Promise<Estimate> {
 }
 
 const isPhone = () => typeof window !== 'undefined' && window.matchMedia('(max-width: 639px)').matches
-
-function afterLine(tier: Tier): string | null {
-  const n = tier.promoMonths
-  if (tier.promoRate === null || n === null) return null
-  const { rentMonth } = cardLabels(tier)
-  const price = tier.promoRate === 0 ? '$0' : `${formatPrice(tier.promoRate)}/mo`
-  if (rentMonth.startsWith('Months 1 and')) {
-    const first = 2
-    const last = first + n - 1
-    const when = n === 1 ? 'Month 2' : `Months ${first} to ${last}`
-    return `${when} rent is ${price}. From month ${last + 1}, your rent is ${formatPrice(tier.webRate)}/mo.`
-  }
-  const last = n
-  return `After month ${last}, your rent is ${formatPrice(tier.webRate)}/mo.`
-}
 
 export default function MoveInCost({ tier, multi = false, onRent }: { tier: Tier; multi?: boolean; onRent: () => void }) {
   const [open, setOpen] = useState(false)
@@ -83,12 +68,21 @@ export default function MoveInCost({ tier, multi = false, onRent }: { tier: Tier
 
   const Chev = open ? ChevronUp : ChevronDown
   const save = cardLabels(tier).save
-  const after = afterLine(tier)
 
   const row = (label: React.ReactNode, value: React.ReactNode, tone = 'text-slate-700') => (
     <div className={`flex justify-between gap-3 py-[3px] text-sm ${tone}`}>
       <span>{label}</span>
       <span className="whitespace-nowrap font-semibold">{value}</span>
+    </div>
+  )
+
+  const promoRow = (name: string | null | undefined, amount: number) => (
+    <div className="flex items-center justify-between gap-3 py-[3px] text-sm text-slate-700">
+      <span className="inline-flex items-center gap-1.5">
+        <Tag size={14} className="shrink-0 text-[#166534]" aria-hidden="true" />
+        {name || 'Promotion'}
+      </span>
+      <span className="whitespace-nowrap rounded-full bg-[#dcfce7] px-2.5 py-0.5 font-semibold text-[#166534]">−{money(amount).replace('.00', '')}</span>
     </div>
   )
 
@@ -109,27 +103,26 @@ export default function MoveInCost({ tier, multi = false, onRent }: { tier: Tier
       ) : (
         <>
           {row(est.prorated ? `Rent, ${est.periodLabel}` : 'Monthly rent', money(est.rent).replace('.00', ''))}
-          {est.promoDiscount > 0 && row(est.promoName || 'Promotion', `−${money(est.promoDiscount).replace('.00', '')}`, 'text-[#166534]')}
+          {est.promoDiscount > 0 && promoRow(est.promoName, est.promoDiscount)}
           {est.protection > 0 && row(`Protection plan ($${est.protectionCoverage.toLocaleString('en-US')} coverage)`, money(est.protection).replace('.00', ''))}
           {est.adminFee > 0 && row('Admin fee (one time)', money(est.adminFee).replace('.00', ''))}
           {est.prepay && (
             <>
               {row(`${est.prepay.monthName} rent (prepaid)`, money(est.prepay.rent).replace('.00', ''))}
-              {est.prepay.promoDiscount > 0 && row(est.prepay.promoName || 'Promotion', `−${money(est.prepay.promoDiscount).replace('.00', '')}`, 'text-[#166534]')}
+              {est.prepay.promoDiscount > 0 && promoRow(est.prepay.promoName, est.prepay.promoDiscount)}
               {est.prepay.protection > 0 && row(`${est.prepay.monthName} protection (prepaid)`, money(est.prepay.protection).replace('.00', ''))}
             </>
           )}
           {row('Taxes', est.tax > 0 ? money(est.tax) : 'Calculated at checkout')}
           <div className="my-2 border-t border-slate-200" />
           <div className="flex justify-between text-[15px] font-extrabold text-navy">
-            <span>Estimated due today*</span>
+            <span>{est.prepay ? 'Estimated total due today*' : 'Estimated first month total*'}</span>
             <span>{money(est.total).replace('.00', '')}</span>
           </div>
-          {after && <p className="mt-0.5 text-xs text-slate-500">{after}</p>}
-          {tier.promoRequiresAutopay && tier.promoRate !== null && <p className="mt-0.5 text-xs text-slate-500">This offer requires autopay.</p>}
           {save !== null && save > 0 && (
             <div className="mt-2.5 rounded-lg bg-[#dcfce7] px-2.5 py-2 text-center text-[13px] font-bold text-[#166534]">Your savings with this offer: {formatPrice(save)}</div>
           )}
+          {tier.promoRequiresAutopay && tier.promoRate !== null && <p className="mt-0.5 text-xs text-slate-500">This offer requires autopay.</p>}
           <button
             type="button"
             onClick={() => {
@@ -141,7 +134,7 @@ export default function MoveInCost({ tier, multi = false, onRent }: { tier: Tier
             Rent now
           </button>
           {multi && <p className="mt-2 text-[11.5px] leading-snug text-slate-500">Based on this size's lowest-priced option. You choose your exact unit next.</p>}
-          <p className="mt-2.5 text-[11.5px] leading-snug text-slate-500">*Estimate only. Taxes and your final total are calculated at checkout.</p>
+          <p className="mt-2.5 text-[11.5px] leading-snug text-slate-500">*Estimate only. Taxes are calculated at checkout.</p>
         </>
       )}
     </>
