@@ -103,7 +103,7 @@ export default function CompactCard({ unit, onSelect, allowReservations, allowWa
           </div>
         )}
 
-        <div className={`flex gap-2 ${byPhone ? 'flex-col' : 'flex-col min-[360px]:flex-row min-[360px]:items-stretch'}`}>
+        <div className={`mx-auto flex w-full max-w-[420px] gap-2 ${byPhone ? 'flex-col' : 'flex-col min-[360px]:flex-row min-[360px]:items-stretch'}`}>
           <div className={`grid min-h-[54px] min-w-0 flex-1 overflow-hidden rounded-[10px] border ${soldOut ? 'border-slate-200 bg-[#F8FAFC]' : 'border-brand-100 bg-white'} ${right ? 'grid-cols-2 [&>*:last-child]:border-l [&>*:last-child]:border-brand-100' : 'grid-cols-1'}`}>
             {half(left, promo)}
             {right && half(right, false)}

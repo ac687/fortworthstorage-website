@@ -483,7 +483,8 @@ a.uz-rent.uz-rent:hover {
 /* 3. Header: orange Rent pill replaces the account icon on phone and tablet
       (Pay Bill / Tenant Login lives in the menu); 44px menu tap target ------ */
 .tu-nav-rent { display: none; }
-@media (max-width: 991px) {
+/* the site's mobile header (hamburger + logo) shows up to 1170px, so the Rent pill does too */
+@media (max-width: 1170px) {
   .tu-nav-rent {
     display: inline-flex; align-items: center; justify-content: center;
     min-height: 44px; padding: 0 20px; border-radius: 999px;
