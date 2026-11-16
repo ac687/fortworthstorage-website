@@ -30,7 +30,7 @@ export type ApiPromoDetails = {
   discountPercentage?: number | null // 50 means 50%
   fixedDiscountAmount?: number | null // pennies
   durationInMonths?: number | null // invoices it applies to; 0 means all of them
-  monthStarts?: number | null // 0 = the move-in invoice, 1 = the first full month after move-in
+  monthStarts?: number | null // first-of-month billing: 0 = prorated move-in invoice, 1 = first full month. Anniversary billing: 0 or 1 = move-in invoice (month 1), 2 = second payment
 }
 
 export type ApiPromotion = {
@@ -322,8 +322,18 @@ export function readPromo(promo: ApiPromotion | null | undefined, web: number) {
 
   // How many payments: durationInMonths (0 = all of them, which has no count to show), else the name.
   const months = d && isNum(d.durationInMonths) ? (d.durationInMonths > 0 ? d.durationInMonths : null) : name ? promoMonthsFromName(name) : null
-  // When it starts: monthStarts 0 = move-in invoice, 1 = first full month. Anything else falls back to the name.
-  const startsFirstFull = d && isNum(d.monthStarts) && (d.monthStarts === 0 || d.monthStarts === 1) ? d.monthStarts === 1 : name ? startsAtFirstFullMonth(name) : false
+  // When it starts. startsFirstFull means "not on the move-in invoice": the first full month after a prorated
+  // move-in month, or (anniversary billing) the second payment.
+  // - First-of-month billing: monthStarts 0 = the prorated move-in invoice, 1 = the first full month.
+  // - Anniversary billing has no prorated invoice, so the move-in invoice is month 1: monthStarts 0 or 1 starts today,
+  //   2 starts with the second payment. A promotion named "second month ..." always starts with the second payment.
+  const anniversary = config.estimate.billingMode === 'anniversary'
+  const nameSaysLater = !!name && startsAtFirstFullMonth(name)
+  const startsFirstFull = anniversary
+    ? nameSaysLater || (!!d && isNum(d.monthStarts) && d.monthStarts >= 2)
+    : d && isNum(d.monthStarts) && (d.monthStarts === 0 || d.monthStarts === 1)
+      ? d.monthStarts === 1
+      : nameSaysLater
 
   return {
     show: !!name && !blocked && discount > 0,

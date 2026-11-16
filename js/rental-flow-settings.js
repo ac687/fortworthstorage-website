@@ -175,6 +175,8 @@ window.RENTAL_FLOW_SETTINGS = {
         fullMonthPromoWords: a promotion whose name contains one of these phrases starts at the first FULL
         month, so the prorated move-in month is not discounted (the discount shows on next month's rent
         instead). Case does not matter. Most promotions start at move-in and need nothing here.
+        With 'anniversary' billing, Monument's promotion "month starts" 1 means the move-in invoice (month 1),
+        and 2 means the second payment, so the cards read "Months 1 to 3" for a 3 month promotion that starts at 1.
         billingMode: 'first-of-month' (prorated move-in month, bills on the 1st) or 'anniversary' (full first
         month, bills on the move-in day). The box normally takes this from Monument's cart preview, so this
         only matters for the built-in backup calculation, used if the preview can't be reached.
