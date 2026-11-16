@@ -188,9 +188,11 @@ export default function App({ host, layer }: { host: HTMLElement; layer: HTMLEle
           return
         }
       }
-      // Sizes with a single tier skip the popup.
-      if (unit.tiers.length === 1) {
-        const t = unit.tiers[0]
+      // Nothing to choose between, so skip the popup: a size with a single tier, or one where only
+      // one tier still has units (the sold-out tiers are not selectable anyway).
+      const open = unit.tiers.filter((t) => t.available > 0)
+      if (unit.tiers.length === 1 || open.length === 1) {
+        const t = open[0] ?? unit.tiers[0]
         startCheckout(unit, t, t.available <= 0 ? 'waitlist' : mode === 'reserve' ? 'reserve' : 'tenant')
         return
       }
