@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { ArrowLeft, Phone } from 'lucide-react'
 import type { FacilityInfo, Tier, UnitOption } from '../lib/units'
-import { formatPrice, promoLabels, typeLabel } from '../lib/units'
+import { cardLabels, formatPrice, promoLabels, typeLabel } from '../lib/units'
 import { moveInEstimate, todayAtFacility, type Estimate } from '../lib/estimate'
 import { estimateFromCart, fetchCart } from '../lib/cart'
 import EstimatePopup from './EstimatePopup'
@@ -147,10 +147,10 @@ export default function CheckoutPanel({ unit, tier, mode, onBack, scrollToTop, f
   return (
     <div>
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-        <button type="button" onClick={onBack} className="inline-flex cursor-pointer items-center gap-1.5 text-sm font-semibold text-brand hover:text-brand-dark">
+        <button type="button" onClick={onBack} className="-my-2 inline-flex min-h-[44px] cursor-pointer items-center gap-1.5 py-2 text-sm font-semibold text-navy hover:text-brand-dark">
           <ArrowLeft size={16} aria-hidden="true" /> Choose a different unit
         </button>
-        <a href={facility.phoneHref || config.facility.phoneHref} className="inline-flex items-center gap-1.5 text-sm font-semibold text-slate-600 hover:text-navy">
+        <a href={facility.phoneHref || config.facility.phoneHref} className="-my-2 inline-flex min-h-[44px] items-center gap-1.5 py-2 text-sm font-semibold text-navy hover:text-brand-dark">
           <Phone size={14} aria-hidden="true" /> Questions? {facility.phoneDisplay || config.facility.phoneDisplay}
         </a>
       </div>
@@ -159,13 +159,18 @@ export default function CheckoutPanel({ unit, tier, mode, onBack, scrollToTop, f
         <div className="md:flex md:items-center md:justify-between md:gap-8">
           <div>
             <p className="text-xs font-bold uppercase tracking-wider text-slate-500">{modeTitle[mode]}</p>
-            <h2 className="mt-1 font-display text-xl font-bold text-navy sm:text-2xl">
-              {unit.width}' x {unit.depth}' {typeLabel(unit.category, unit.unitType)}
-            </h2>
+            <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1">
+              <h2 className="font-display text-xl font-bold text-navy sm:text-2xl">
+                {unit.width}' x {unit.depth}' {typeLabel(unit.category, unit.unitType)}
+              </h2>
+              {tier.promoRate !== null && (cardLabels(tier).save ?? 0) > 0 && (
+                <span className="whitespace-nowrap rounded-full bg-[#DCFCE7] px-2.5 py-0.5 text-xs font-extrabold text-[#166534]">Save {formatPrice(cardLabels(tier).save as number)}</span>
+              )}
+            </div>
             <p className="mt-1 text-sm text-slate-700">
               {tier.promoRate !== null ? (
                 <>
-                  <b className="text-brand">{tier.promoRate === 0 ? 'Free' : `${formatPrice(tier.promoRate)}/mo`}</b>{' '}
+                  <b className="text-[#166534]">{tier.promoRate === 0 ? 'Free' : `${formatPrice(tier.promoRate)}/mo`}</b>{' '}
                   {/* Same duration the unit cards show; unknown durations stay generic. */}
                   {promoLabels(tier).sentence}{' '}
                   <b className="text-navy">{formatPrice(tier.webRate)}/mo</b>
