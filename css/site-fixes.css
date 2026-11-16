@@ -552,3 +552,12 @@ div.pk-price.pk-price { color: var(--tu-navy); }
 [class*="button-"].is-secondary {
   box-shadow: none; border: 1.5px solid var(--tu-navy); color: var(--tu-navy); background-color: #fff; font-weight: 600;
 }
+
+/* Home "Browse by Size" pills: match the white outline pills used elsewhere
+   (the older .sz-strip-home rule painted them solid navy with navy text) */
+.sz-strip.sz-strip-home .sz-strip-pills a {
+  background: #fff;
+  color: var(--tu-navy);
+  border: 1.5px solid var(--tu-border-strong);
+}
+.sz-strip.sz-strip-home .sz-strip-pills a:hover { background: var(--tu-navy); border-color: var(--tu-navy); color: #fff; }
