@@ -52,7 +52,7 @@ export default function UnitCard({ unit, onSelect, allowReservations = true, all
       {popular && (
         <span className="absolute -top-3 left-5 rounded-full bg-navy px-3 py-1 text-xs font-extrabold leading-none tracking-wide text-white">★ {config.popular.ribbonText}</span>
       )}
-      <div className="flex flex-col gap-5 lg:grid lg:grid-cols-[minmax(0,360px)_minmax(290px,300px)_170px] lg:items-center lg:justify-center lg:gap-5">
+      <div className="flex flex-col gap-5 lg:grid lg:grid-cols-[minmax(0,312px)_minmax(290px,300px)_170px] lg:items-center lg:justify-center lg:gap-6">
         {/* Unit details: type label on top (same words as the filter buttons), then photo and text */}
         <div className="flex flex-col items-center gap-2 lg:items-start">
           {typePill && !hideTypePill && (
