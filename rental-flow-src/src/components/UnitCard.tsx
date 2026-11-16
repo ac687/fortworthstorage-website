@@ -26,7 +26,7 @@ const link = 'cursor-pointer -my-2 py-3 text-[13px] font-bold text-brand-dark un
 export default function UnitCard({ unit, onSelect, allowReservations = true, allowWaitlist = true, phone = null, onCall, hideTypePill = false, underHeading = false }: Props) {
   const compact = useCompact()
   if (compact) {
-    return <CompactCard unit={unit} onSelect={onSelect} allowReservations={allowReservations} allowWaitlist={allowWaitlist} phone={phone} onCall={onCall} underHeading={underHeading} />
+    return <CompactCard unit={unit} onSelect={onSelect} allowReservations={allowReservations} allowWaitlist={allowWaitlist} phone={phone} onCall={onCall} underHeading={underHeading} hideTypePill={hideTypePill} />
   }
   // Parking and RV spaces are rented by phone, so availability wording ("Waitlist only", "Only 2 left") is left off.
   const byPhone = unit.category === 'parking'

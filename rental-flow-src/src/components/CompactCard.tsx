@@ -14,6 +14,7 @@ type Props = {
   onCall?: (unit: UnitOption) => void
   // True when the unit sits under its own type heading, so the type is not repeated on the card.
   underHeading: boolean
+  hideTypePill?: boolean
 }
 
 const link = 'cursor-pointer whitespace-nowrap py-1 -my-2 py-3 text-[13px] leading-5 font-bold text-brand-dark underline hover:text-navy'
@@ -28,7 +29,7 @@ function shortType(unit: UnitOption): string {
 
 // The phone version of the unit card: no photo, price and Rent now side by side, about half the height of the full card.
 // Rate lock and the free disc lock are said once in a banner above the list (App.tsx) instead of on every card.
-export default function CompactCard({ unit, onSelect, allowReservations, allowWaitlist, phone, onCall, underHeading }: Props) {
+export default function CompactCard({ unit, onSelect, allowReservations, allowWaitlist, phone, onCall, underHeading, hideTypePill = false }: Props) {
   const byPhone = unit.category === 'parking'
   const badge = byPhone ? null : availabilityBadge(unit.totalAvailable)
   const soldOut = unit.totalAvailable <= 0
@@ -40,7 +41,7 @@ export default function CompactCard({ unit, onSelect, allowReservations, allowWa
   const sizeLine = info?.short || info?.line
   const { promo, strip, left, right } = priceModel(tier, soldOut, byPhone)
   const showNote = multi && !soldOut && !byPhone && !!config.priceNote
-  const detail = [sizeLine, underHeading ? '' : shortType(unit)].filter(Boolean)
+  const detail = [sizeLine, underHeading || hideTypePill ? '' : shortType(unit)].filter(Boolean)
 
   const cents = [left.price, right?.price ?? 0].some((p) => formatPrice(p).includes('.'))
   const priceSize = cents ? 'text-[20px]' : 'text-[22px]'
