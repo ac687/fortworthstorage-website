@@ -82,7 +82,7 @@ export default function MoveInCost({ tier, multi = false, onRent }: { tier: Tier
         <Tag size={14} className="shrink-0 text-[#166534]" aria-hidden="true" />
         {name || 'Promotion'}
       </span>
-      <span className="whitespace-nowrap rounded-full bg-[#dcfce7] px-2.5 py-0.5 font-semibold text-[#166534]">−{money(amount).replace('.00', '')}</span>
+      <span className="-my-0.5 -mr-2.5 whitespace-nowrap rounded-full bg-[#dcfce7] px-2.5 py-0.5 font-semibold text-[#166534]">−{money(amount).replace('.00', '')}</span>
     </div>
   )
 

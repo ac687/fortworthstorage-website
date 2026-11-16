@@ -21,7 +21,7 @@ export default function EstimateBody({ estimate: e, save = null }: { estimate: E
         <Amount now={e.rent} full={e.prorated ? e.rentFull : undefined} />
       </div>
       {e.promoDiscount > 0 && (
-        <div className={row}>
+        <div className={`${row} !items-center`}>
           <PromoName name={e.promoName} />
           <DiscountPill amount={e.promoDiscount} />
         </div>
@@ -50,7 +50,7 @@ export default function EstimateBody({ estimate: e, save = null }: { estimate: E
             <span className="text-slate-900">{money(p.rent)}</span>
           </div>
           {p.promoDiscount > 0 && (
-            <div className={row}>
+            <div className={`${row} !items-center`}>
               <PromoName name={p.promoName} />
               <DiscountPill amount={p.promoDiscount} />
             </div>
@@ -128,7 +128,7 @@ function PromoName({ name }: { name?: string | null }) {
 }
 
 function DiscountPill({ amount }: { amount: number }) {
-  return <span className="whitespace-nowrap rounded-full bg-[#dcfce7] px-2.5 py-0.5 text-sm font-semibold text-[#166534]">−{money(amount)}</span>
+  return <span className="whitespace-nowrap -my-0.5 -mr-2.5 rounded-full bg-[#dcfce7] px-2.5 py-0.5 text-sm font-semibold text-[#166534]">−{money(amount)}</span>
 }
 
 // A prorated amount, with the full monthly price struck through beside it.
