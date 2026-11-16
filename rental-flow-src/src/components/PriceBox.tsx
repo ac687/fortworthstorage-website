@@ -8,6 +8,7 @@ import { cardLabels, formatPrice, sentenceCase } from '../lib/units'
 // `multi` = the size has more than one tier, so the prices shown are the lowest ones (the bar says so). `soldOut` = the regular price only.
 export type PriceLeft = { price: number; label: string; free?: boolean; promo?: boolean }
 export type PriceRight = { price: number; label: string; crossed?: boolean; soft?: boolean }
+export type PriceCell = { price: number; label: string; free?: boolean; promo?: boolean; crossed?: boolean; soft?: boolean }
 
 // What the price box shows for a tier: the offer strip text, the lead price (left) and the regular price (right).
 // Shared by the full price box and the compact phone card, so both always say the same thing.
@@ -19,11 +20,22 @@ export function priceModel(tier: Tier, soldOut: boolean, byPhone: boolean) {
   let strip: { text: string; save: number | null } | null = null
   let left: PriceLeft
   let right: PriceRight | null = null
+  // A promotion that starts with the second payment (anniversary billing, e.g. Second month free) reads best in month
+  // order: this month's regular rent, the promotion month(s), then the regular rent again. Three cells instead of two.
+  let three: PriceCell[] | null = null
 
   if (promo) {
     strip = { text: sentenceCase(tier.promoName ?? 'Special offer'), save: save !== null && save > 0 ? save : null }
     left = { price: tier.promoRate!, label: promoMonth, free: tier.promoRate === 0, promo: true }
     right = { price: tier.webRate, label: rentMonth, soft: true }
+    if (tier.promoFirstFullMonth && config.estimate.billingMode === 'anniversary' && tier.promoMonths !== null && tier.promoMonths >= 1) {
+      const n = tier.promoMonths
+      three = [
+        { price: tier.webRate, label: 'Month 1' },
+        { price: tier.promoRate!, label: n === 1 ? 'Month 2' : `Months 2–${n + 1}`, free: tier.promoRate === 0, promo: true },
+        { price: tier.webRate, label: `Month ${n + 2}+`, soft: true },
+      ]
+    }
   } else if (inStore) {
     const pct = Math.round(((tier.streetRate - tier.webRate) / tier.streetRate) * 100)
     strip = { text: `Online price: ${pct}% off`, save: tier.streetRate - tier.webRate }
@@ -32,7 +44,7 @@ export function priceModel(tier: Tier, soldOut: boolean, byPhone: boolean) {
   } else {
     left = { price: tier.webRate, label: 'Every month' }
   }
-  return { promo, inStore, strip, left, right }
+  return { promo, inStore, strip, left, right, three }
 }
 
 // `popup` = the tier popup's version: no bottom bar (the popup says rate lock and disc lock once, under the tiers) and a shorter box.
@@ -52,11 +64,13 @@ export default function PriceBox({
   popup?: boolean
   sharedOffer?: boolean
 }) {
-  const { promo, inStore, strip, left, right } = priceModel(tier, soldOut, byPhone)
+  const { promo, inStore, strip, left, right, three } = priceModel(tier, soldOut, byPhone)
 
   // Both prices in a box share one size. A price with cents ("$44.50") is wider, so the pair steps down a size to fit its half.
-  const cents = [left.price, right?.price ?? 0].some((p) => formatPrice(p).includes('.'))
-  const priceSize = cents ? 'text-[22px]' : 'text-[26px]'
+  // The three-cell version (a promotion starting with the second payment) steps down one more size to fit its thirds.
+  const cells: PriceCell[] = three ?? (right ? [left, right] : [left])
+  const cents = cells.some((c) => formatPrice(c.price).includes('.'))
+  const priceSize = three ? (cents ? 'text-[17px]' : 'text-[21px]') : cents ? 'text-[22px]' : 'text-[26px]'
 
   const price = (p: number, label: string, o: { free?: boolean; crossed?: boolean; promo?: boolean; soft?: boolean } = {}) => (
     <div className="min-w-0 text-center leading-none">
@@ -101,10 +115,13 @@ export default function PriceBox({
           )}
         </div>
       )}
-      <div className={`grid min-h-0 flex-1 ${right ? 'grid-cols-2' : 'grid-cols-1'}`}>
-        {/* The promotional half is tinted to carry the offer strip's green down to the sale price. */}
-        <div className={`flex min-w-0 items-center justify-center px-1.5 ${promo ? 'bg-[#DCFCE7]' : ''}`}>{price(left.price, left.label, left)}</div>
-        {right && <div className="flex min-w-0 items-center justify-center border-l border-brand-100 px-1.5">{price(right.price, right.label, right)}</div>}
+      <div className={`grid min-h-0 flex-1 ${cells.length === 3 ? 'grid-cols-3' : cells.length === 2 ? 'grid-cols-2' : 'grid-cols-1'}`}>
+        {/* The promotional cell is tinted to carry the offer strip's green down to the sale price. */}
+        {cells.map((c, i) => (
+          <div key={i} className={`flex min-w-0 items-center justify-center px-1.5 ${i > 0 ? 'border-l border-brand-100' : ''} ${promo && i === (three ? 1 : 0) ? 'bg-[#DCFCE7]' : ''}`}>
+            {price(c.price, c.label, c)}
+          </div>
+        ))}
       </div>
       {(showLock || showFree || showNote) && (
         // Items sit on one line when they fit and wrap to a second centered row when they do not (narrow phones, free disc lock on).

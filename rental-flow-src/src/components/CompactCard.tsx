@@ -1,3 +1,4 @@
+import { Fragment } from 'react'
 import { Phone, Tag } from 'lucide-react'
 import { config } from '../config'
 import type { UnitOption } from '../lib/units'
@@ -39,12 +40,16 @@ export default function CompactCard({ unit, onSelect, allowReservations, allowWa
   const tier = soldOut ? withoutPromo(unit.fromTier) : unit.fromTier
   const info = config.sizeInfo[unit.size]
   const sizeLine = info?.short || info?.line
-  const { promo, strip, left, right } = priceModel(tier, soldOut, byPhone)
+  const { promo, strip, left, right, three: threeAll } = priceModel(tier, soldOut, byPhone)
+  // Prices with cents ("$124.75") are too wide for thirds beside the button on a phone, so those keep the two-cell box.
+  const three = threeAll && !threeAll.some((c) => formatPrice(c.price).includes('.')) ? threeAll : null
   const showNote = multi && !soldOut && !byPhone && !!config.priceNote
   const detail = [sizeLine, underHeading || hideTypePill ? '' : shortType(unit)].filter(Boolean)
 
-  const cents = [left.price, right?.price ?? 0].some((p) => formatPrice(p).includes('.'))
-  const priceSize = cents ? 'text-[20px]' : 'text-[22px]'
+  const cells = three ?? (right ? [left, right] : [left])
+  const cents = cells.some((c) => formatPrice(c.price).includes('.'))
+  // Three cells (a promotion starting with the second payment) use a smaller price so each third fits beside the button.
+  const priceSize = three ? 'text-[17px] min-[390px]:text-[18px]' : cents ? 'text-[20px]' : 'text-[22px]'
   const half = (h: { price: number; label: string; free?: boolean; promo?: boolean; crossed?: boolean; soft?: boolean }, tint: boolean) => (
     <div className={`flex min-w-0 flex-col items-center justify-center px-1 py-1.5 text-center ${tint ? 'bg-[#F0FDF4]' : ''}`}>
       <div className="whitespace-nowrap leading-none">
@@ -55,9 +60,9 @@ export default function CompactCard({ unit, onSelect, allowReservations, allowWa
         >
           {h.free ? '$0' : formatPrice(h.price)}
         </span>
-        {!h.free && <span className="text-xs font-medium text-[#475569]">/mo</span>}
+        {!h.free && <span className={`font-medium text-[#475569] ${three ? 'text-[11px]' : 'text-xs'}`}>/mo</span>}
       </div>
-      <div className="mt-1 whitespace-nowrap text-xs leading-none text-[#475569]">{h.label}</div>
+      <div className={`mt-1 whitespace-nowrap leading-none text-[#475569] ${three ? 'text-[11px]' : 'text-xs'}`}>{h.label}</div>
     </div>
   )
 
@@ -105,9 +110,10 @@ export default function CompactCard({ unit, onSelect, allowReservations, allowWa
         )}
 
         <div className={`mx-auto flex w-full max-w-[420px] gap-2 ${byPhone ? 'flex-col' : 'flex-col min-[360px]:flex-row min-[360px]:items-stretch'}`}>
-          <div className={`grid min-h-[54px] min-w-0 flex-1 overflow-hidden rounded-[10px] border ${soldOut ? 'border-slate-200 bg-[#F8FAFC]' : 'border-brand-100 bg-white'} ${right ? 'grid-cols-2 [&>*:last-child]:border-l [&>*:last-child]:border-brand-100' : 'grid-cols-1'}`}>
-            {half(left, promo)}
-            {right && half(right, false)}
+          <div className={`grid min-h-[54px] min-w-0 flex-1 overflow-hidden rounded-[10px] border ${soldOut ? 'border-slate-200 bg-[#F8FAFC]' : 'border-brand-100 bg-white'} ${cells.length === 3 ? 'grid-cols-3' : cells.length === 2 ? 'grid-cols-2' : 'grid-cols-1'} [&>*+*]:border-l [&>*+*]:border-brand-100`}>
+            {cells.map((c, i) => (
+              <Fragment key={i}>{half(c, promo && i === (three ? 1 : 0))}</Fragment>
+            ))}
           </div>
           {byPhone ? (
             <>
