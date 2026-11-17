@@ -214,7 +214,7 @@ window.RENTAL_FLOW_SETTINGS = {
     panelTitle: '12-month rate lock',
     panelText: 'The rate you start at is the rate you pay for 12 months.',
   },
-  popular: { unit: '10x20 Drive Up', ribbonText: 'Most popular size' },
+  popular: { unit: '10x10 Drive Up', ribbonText: 'Our Pick' },
   priceNote: 'Lowest price shown',
   tagline: 'Rent online in minutes. Move in today.',
   reviews: [
