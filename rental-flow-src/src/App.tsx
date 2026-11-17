@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { ChevronDown, DoorClosed, Gift, LockKeyhole, ThermometerSnowflake } from 'lucide-react'
+import { ArrowDown, ChevronDown, DoorClosed, Gift, LockKeyhole, ThermometerSnowflake } from 'lucide-react'
 import SideColumn from './components/SideColumn'
 import type { CheckoutMode } from './config'
 import { config, monumentUnitsUrl, setRuntimeFacility } from './config'
@@ -48,7 +48,9 @@ function sectionTitle(cat: Category, unitType: string) {
 }
 
 // The heading above one group of units: the type, a short description, and how many sizes it has.
-function SectionHeading({ cat, unitType, count }: { cat: Category; unitType: string; count: number }) {
+// On the first heading, `jump` adds a small link to the next type ("Temperature controlled below") so people
+// who see only the first group know there is more underneath.
+function SectionHeading({ cat, unitType, count, jump }: { cat: Category; unitType: string; count: number; jump?: { label: string; onClick: () => void } }) {
   const temp = cat === 'temperature-controlled'
   const Icon = temp ? ThermometerSnowflake : cat === 'drive-up' ? DoorClosed : null
   const color = temp ? 'text-[#1E3A8A] border-[#1E3A8A]' : 'text-navy border-navy'
@@ -62,9 +64,17 @@ function SectionHeading({ cat, unitType, count }: { cat: Category; unitType: str
         </h3>
         <p className="mt-0.5 text-[13px] font-normal text-[#475569]">{sub}</p>
       </div>
-      <span className="whitespace-nowrap text-[12.5px] font-semibold text-[#475569]">
-        {count} {cat === 'parking' ? (count === 1 ? 'space' : 'spaces') : count === 1 ? 'size' : 'sizes'}
-      </span>
+      <div className="flex shrink-0 flex-col items-end gap-1">
+        {jump && (
+          <button type="button" onClick={jump.onClick} className="inline-flex cursor-pointer items-center gap-1 whitespace-nowrap text-[13px] font-semibold leading-tight text-brand-dark underline hover:text-navy">
+            {jump.label}
+            <ArrowDown size={13} strokeWidth={2.4} aria-hidden="true" />
+          </button>
+        )}
+        <span className="whitespace-nowrap text-[12.5px] font-semibold text-[#475569]">
+          {count} {cat === 'parking' ? (count === 1 ? 'space' : 'spaces') : count === 1 ? 'size' : 'sizes'}
+        </span>
+      </div>
     </div>
   )
 }
@@ -311,6 +321,19 @@ export default function App({ host, layer }: { host: HTMLElement; layer: HTMLEle
       .filter((g) => g.units.length > 0)
   }, [grouped, visible])
 
+  // The link on the first heading: scrolls to the next group, landing just below the page's sticky header.
+  const sectionEls = useRef<Record<string, HTMLElement | null>>({})
+  const jumpTo = (next: { cat: Category; units: UnitOption[] }) => {
+    const name = sectionTitle(next.cat, next.units[0].unitType)
+    return {
+      label: `${name.charAt(0)}${name.slice(1).toLowerCase()} below`,
+      onClick: () => {
+        const el = sectionEls.current[next.cat]
+        if (el) window.scrollTo({ top: Math.max(0, el.getBoundingClientRect().top + window.scrollY - stickyHeaderHeight()), behavior: 'smooth' })
+      },
+    }
+  }
+
   const unitCard = (unit: UnitOption, position: number) => (
     <UnitCard
       key={unit.key}
@@ -423,9 +446,9 @@ export default function App({ host, layer }: { host: HTMLElement; layer: HTMLEle
                 {grouped
                   ? (() => {
                       let n = 0
-                      return groups.map((g) => (
-                        <section key={g.cat} className="flex flex-col gap-4 md:gap-5" aria-label={sectionTitle(g.cat, g.units[0].unitType)}>
-                          <SectionHeading cat={g.cat} unitType={g.units[0].unitType} count={g.units.length} />
+                      return groups.map((g, gi) => (
+                        <section key={g.cat} ref={(el) => { sectionEls.current[g.cat] = el }} className="flex flex-col gap-4 md:gap-5" aria-label={sectionTitle(g.cat, g.units[0].unitType)}>
+                          <SectionHeading cat={g.cat} unitType={g.units[0].unitType} count={g.units.length} jump={gi === 0 && groups[1] ? jumpTo(groups[1]) : undefined} />
                           {g.units.map((unit) => {
                             n += 1
                             const pos = n
