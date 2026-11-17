@@ -143,7 +143,7 @@ export default function CompactCard({ unit, onSelect, allowReservations, allowWa
         {!byPhone && !soldOut && (showCost || allowReservations || showNote) && (
           // Note on the left, links on the right, all on one text baseline. Under 360px the links come first and the note sits centred below.
           <div className="flex items-baseline justify-between gap-x-3 max-[369px]:flex-col max-[369px]:items-stretch max-[369px]:gap-y-0.5">
-            {showNote && <span className="whitespace-nowrap text-xs leading-5 text-[#64748b] max-[369px]:order-2 max-[369px]:text-center">{config.priceNote}</span>}
+            {showNote && <span className="whitespace-nowrap text-xs leading-5 text-[#475569] max-[369px]:order-2 max-[369px]:text-center">{config.priceNote}</span>}
             <span className={`inline-flex items-baseline gap-x-3.5 max-[369px]:order-1 max-[369px]:w-full max-[369px]:justify-between ${showNote ? '' : 'ml-auto'}`}>
               {showCost && <MoveInCost tier={unit.fromTier} multi={multi} onRent={() => onSelect(unit, 'rent')} />}
               {allowReservations && (

@@ -132,7 +132,7 @@ export default function PriceBox({
               {config.rateLock.text}
             </span>
           )}
-          {showNote && <span className="whitespace-nowrap text-[11px] font-normal text-[#64748b]">{showLock ? '· ' : ''}{config.priceNote}</span>}
+          {showNote && <span className="whitespace-nowrap text-[11px] font-normal text-[#475569]">{showLock ? '· ' : ''}{config.priceNote}</span>}
           {showFree && (
             // On desktop the side column's panel says this, so the card drops it there (see App.tsx).
             <span className="tu-free-lock inline-flex items-center gap-1 whitespace-nowrap text-[#166534]">
