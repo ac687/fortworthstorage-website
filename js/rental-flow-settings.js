@@ -242,10 +242,10 @@ window.RENTAL_FLOW_SETTINGS = {
       fits: ['Contents of a 3 to 4 bedroom home', 'Motorcycles, ATVs, and small boats', 'Contractor tools and equipment', 'Business inventory'],
     },
     '10x30': {
-      line: 'Two-car garage size, fits a 5-bedroom home',
-      short: 'Two-car garage size', // phones: shorter, fits beside the size
-      summary: '300 sq ft, about the size of a two-car garage.',
-      fits: ['Contents of a large 4 to 5 bedroom home', 'Multiple full-size vehicles or trucks', 'Large boats, RVs, or campers (check dimensions)', 'Business or commercial inventory'],
+      line: 'Extra-long one-car garage size, fits a 5-bedroom home',
+      short: 'Extra-long garage size', // phones: shorter, fits beside the size
+      summary: '300 sq ft, about the size of an extra-long one-car garage.',
+      fits: ['Contents of a large 4 to 5 bedroom home', 'A full-size truck or SUV plus furniture', 'Large boats, RVs, or campers (check dimensions)', 'Business or commercial inventory'],
     },
     '20x20': {
       line: 'Large two-car garage size',
