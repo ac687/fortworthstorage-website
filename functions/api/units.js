@@ -25,7 +25,8 @@
 
 const DEFAULT_PORTFOLIO = 'storageoperationsgroup'
 const CACHE_SECONDS = 180 // unit availability and rates
-const PROMO_CACHE_SECONDS = CACHE_SECONDS // promotion rules refresh on the same schedule as rates and availability
+const PROMO_CACHE_SECONDS = 900 // promotion rules change rarely, so they refresh less often than rates (fewer calls, fewer 429s)
+const PROMO_STALE_SECONDS = 86400 // last good rules, used only when Monument refuses or fails a refresh
 const PROMO_TIMEOUT_MS = 4000
 const UUID_RE = /^[0-9a-f-]{36}$/i
 const USER_AGENT = 'fortworth-website/1.0'
@@ -55,6 +56,7 @@ function pickRules(d) {
 // Fetches the rules for a set of promotion UUIDs. Returns { rules: Map | null, status }.
 async function fetchPromoRules({ uuids, origin, portfolio, facility, apiKey, monEnv, cache, waitUntil }) {
   const cacheKey = new Request(`https://cache.invalid/${monEnv}/promos/${facility}/${uuids.join(',')}`)
+  const staleKey = new Request(`https://cache.invalid/${monEnv}/promos-stale/${facility}/${uuids.join(',')}`)
   const toMap = (rows) => new Map(rows.filter((r) => r && r.promotionUuid).map((r) => [r.promotionUuid, r]))
 
   const hit = await cache.match(cacheKey)
@@ -67,6 +69,18 @@ async function fetchPromoRules({ uuids, origin, portfolio, facility, apiKey, mon
     }
   }
 
+  // When the refresh fails (for example a 429), reuse the last good rules instead of showing guessed prices.
+  const fallback = async (status) => {
+    try {
+      const old = await cache.match(staleKey)
+      const rows = old ? await old.json() : null
+      if (Array.isArray(rows)) return { rules: toMap(rows), status: `stale (${status})` }
+    } catch {
+      /* no usable copy */
+    }
+    return { rules: null, status }
+  }
+
   try {
     const res = await fetch(`${origin}/api/${portfolio}/portfolios/v1/facilities/${facility}/promotions/get_by_uuids`, {
       method: 'POST',
@@ -74,13 +88,14 @@ async function fetchPromoRules({ uuids, origin, portfolio, facility, apiKey, mon
       body: JSON.stringify({ promotionUuids: uuids }),
       signal: AbortSignal.timeout(PROMO_TIMEOUT_MS),
     })
-    if (!res.ok) return { rules: null, status: `failed ${res.status}` }
+    if (!res.ok) return await fallback(`failed ${res.status}`)
     const rows = await res.json()
-    if (!Array.isArray(rows)) return { rules: null, status: 'failed bad response' }
+    if (!Array.isArray(rows)) return await fallback('failed bad response')
     waitUntil?.(cache.put(cacheKey, json(rows, 200, { 'cache-control': `public, max-age=${PROMO_CACHE_SECONDS}` })))
+    waitUntil?.(cache.put(staleKey, json(rows, 200, { 'cache-control': `public, max-age=${PROMO_STALE_SECONDS}` })))
     return { rules: toMap(rows), status: `ok ${rows.length}` }
   } catch {
-    return { rules: null, status: 'failed unreachable' }
+    return await fallback('failed unreachable')
   }
 }
 

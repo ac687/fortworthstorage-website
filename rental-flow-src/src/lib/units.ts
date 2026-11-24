@@ -317,11 +317,17 @@ export function readPromo(promo: ApiPromotion | null | undefined, web: number) {
       discount = d.fixedDiscountAmount / 100
     }
   }
-  if (discount === null) discount = (promo?.highestDiscountAmount ?? 0) / 100
-  discount = Math.min(discount, web)
-
   // How many payments: durationInMonths (0 = all of them, which has no count to show), else the name.
   const months = d && isNum(d.durationInMonths) ? (d.durationInMonths > 0 ? d.durationInMonths : null) : name ? promoMonthsFromName(name) : null
+  // Without Monument's rules, read the discount from the name ("50% Off Your First 2 Months"). If the name has no
+  // percentage, highestDiscountAmount is the discount across ALL the promotion's payments, so split it by the count.
+  // Treating it as one payment's discount would show a 2-month 50% promotion as free ($0).
+  if (discount === null) {
+    const pct = name.match(/(\d{1,3})\s*%/)
+    if (pct && Number(pct[1]) > 0) discount = Math.round(web * Math.min(100, Number(pct[1]))) / 100
+    else discount = (promo?.highestDiscountAmount ?? 0) / 100 / (months && months > 0 ? months : 1)
+  }
+  discount = Math.min(discount, web)
   // When it starts. startsFirstFull means "not on the move-in invoice": the first full month after a prorated
   // move-in month, or (anniversary billing) the second payment.
   // - First-of-month billing: monthStarts 0 = the prorated move-in invoice, 1 = the first full month.
