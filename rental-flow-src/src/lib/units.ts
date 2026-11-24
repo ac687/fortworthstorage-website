@@ -182,6 +182,8 @@ const NUMBER_WORDS: Record<string, number> = {
 export function promoMonthsFromName(name: string): number | null {
   const n = name.toLowerCase()
   const num = (w: string) => (/^\d+$/.test(w) ? Number(w) : NUMBER_WORDS[w] ?? null)
+  // "Second Month Free" / "2nd Month 50% Off": one payment, the second. (Without this the count read as unknown.)
+  if (/\b(?:second|2nd)\s+month\b/.test(n) && !/\b(?:first|1st)\b/.test(n)) return 1
   let m = n.match(/\b(?:first|1st)\s+(?:(\d+|[a-z]+)\s+)?(?:full\s+)?(?:months?|rent|payments?)\b/)
   if (m) {
     // "first full month": the word "full" is not a count.
