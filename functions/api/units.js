@@ -4,8 +4,9 @@
 //
 // Settings (Cloudflare > Settings > Variables and Secrets):
 //   MONUMENT_API_KEY              secret  (required) Shopping API key
-//   MONUMENT_INTEGRATION_API_KEY  secret  optional Integration API key, used for promotion details.
-//                                         Falls back to MONUMENT_API_KEY when not set.
+//   PROMO_KV                      KV binding (optional) Cloudflare KV namespace shared by every data center. Keeps the
+//                                         promotion rules for a few hours so Monument is asked rarely.
+//                                         Without it the page still works, with a per-data-center cache only.
 //   MONUMENT_ENV                  text    "stg" or "prd" (default "prd")
 //   MONUMENT_FACILITY_UUID        text    which facility to list
 //   MONUMENT_PORTFOLIO            text    optional, default "storageoperationsgroup"
@@ -16,18 +17,29 @@
 // How promotions work here:
 //   1. GET /facilities/:facility/unitGroups already includes each group's best auto-applied
 //      promotion (name, UUID, and the discount in pennies for that group).
-//   2. One batched POST .../promotions/get_by_uuids (Integration API) returns the rules for the
+//   2. One batched POST .../promotions/get_by_uuids (called with the same Shopping API key) returns the rules for the
 //      distinct promotions: percentage or fixed amount, how many months, which invoice it starts on,
 //      who it is for, and whether autopay is required. They are attached to each group as
 //      bestAutoAppliedPromotion.details.
 //   If step 2 fails for any reason the groups are still returned with the promotion from step 1, and the
-//   page falls back to reading the promotion's name. The x-promo-details response header says what happened.
+//   page falls back to reading the promotion's name. The x-promo-details response header says what happened:
+//     ok N | cached N | kv N          rules loaded (from Monument, this data center's cache, or shared KV)
+//     stale (refreshing | paused)     the last good rules are being used while Monument is refreshed or paused
+//     failed 429 | paused             no rules at all, so the page reads the promotion's name
+//     none needed                     no promotions on any group
 
 const DEFAULT_PORTFOLIO = 'storageoperationsgroup'
 const CACHE_SECONDS = 180 // unit availability and rates
-const PROMO_CACHE_SECONDS = 900 // promotion rules change rarely, so they refresh less often than rates (fewer calls, fewer 429s)
-const PROMO_STALE_SECONDS = 86400 // last good rules, used only when Monument refuses or fails a refresh
+const PROMO_CACHE_SECONDS = 900 // per data center: promotion rules change rarely, so they refresh less often than rates
+const PROMO_STALE_SECONDS = 86400 // per data center: last good rules, used only when Monument refuses or fails a refresh
+const PROMO_KV_FRESH_SECONDS = 4 * 3600 // shared KV copy counts as fresh this long
+const PROMO_KV_KEEP_SECONDS = 7 * 86400 // shared KV copy is kept this long as the last good rules
+const PROMO_PAUSE_SECONDS = 300 // after a failed refresh, do not ask Monument again for this long
+const PROMO_MAX_PAUSE_SECONDS = 900 // longest pause, even if Monument's Retry-After asks for more
+const PROMO_LOCK_SECONDS = 60 // while one visitor's refresh runs, others do not start their own
 const PROMO_TIMEOUT_MS = 4000
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
+const jitter = (ms) => Math.round(ms * (0.75 + Math.random() * 0.5)) // +/- 25%, so callers do not retry in step
 const UUID_RE = /^[0-9a-f-]{36}$/i
 const USER_AGENT = 'fortworth-website/1.0'
 
@@ -54,49 +66,128 @@ function pickRules(d) {
 }
 
 // Fetches the rules for a set of promotion UUIDs. Returns { rules: Map | null, status }.
-async function fetchPromoRules({ uuids, origin, portfolio, facility, apiKey, monEnv, cache, waitUntil }) {
-  const cacheKey = new Request(`https://cache.invalid/${monEnv}/promos/${facility}/${uuids.join(',')}`)
-  const staleKey = new Request(`https://cache.invalid/${monEnv}/promos-stale/${facility}/${uuids.join(',')}`)
+//
+// Where the rules come from, cheapest first:
+//   1. This data center's own cache (15 minutes).
+//   2. Workers KV (binding PROMO_KV), shared by every data center (4 hours). Optional.
+//   3. Monument, only when 1 and 2 have nothing fresh. A 429 or server error is retried with a short exponential
+//      back-off (about 1s, then 2s, with jitter). If it still fails, calls are paused for a few minutes.
+// The last good rules (7 days in KV, 24 hours in the local cache) are used whenever Monument fails or is paused.
+// When a last good copy exists, the visitor is answered from it at once and the refresh runs in the background.
+async function fetchPromoRules({ uuids, origin, portfolio, facility, apiKey, monEnv, cache, waitUntil, kv }) {
+  const list = uuids.join(',')
+  const cacheKey = new Request(`https://cache.invalid/${monEnv}/promos/${facility}/${list}`)
+  const staleKey = new Request(`https://cache.invalid/${monEnv}/promos-stale/${facility}/${list}`)
+  const pauseKey = new Request(`https://cache.invalid/${monEnv}/promos-pause/${facility}`)
+  const kvKey = `promos:${monEnv}:${facility}:${list}`
+  const kvPause = `promos-pause:${monEnv}:${facility}`
+  const useKv = !!kv && typeof kv.get === 'function' && kvKey.length < 480
   const toMap = (rows) => new Map(rows.filter((r) => r && r.promotionUuid).map((r) => [r.promotionUuid, r]))
+  const later = (p) => (waitUntil ? waitUntil(p) : p)
+  const asJson = (rows, seconds) => json(rows, 200, { 'cache-control': `public, max-age=${seconds}` })
 
-  const hit = await cache.match(cacheKey)
-  if (hit) {
+  const localRows = async (req) => {
     try {
-      const rows = await hit.json()
-      if (Array.isArray(rows)) return { rules: toMap(rows), status: `cached ${rows.length}` }
+      const hit = await cache.match(req)
+      const rows = hit ? await hit.json() : null
+      return Array.isArray(rows) ? rows : null
     } catch {
-      /* fall through and fetch again */
+      return null
     }
   }
-
-  // When the refresh fails (for example a 429), reuse the last good rules instead of showing guessed prices.
-  const fallback = async (status) => {
+  const kvEntry = async () => {
+    if (!useKv) return null
     try {
-      const old = await cache.match(staleKey)
-      const rows = old ? await old.json() : null
-      if (Array.isArray(rows)) return { rules: toMap(rows), status: `stale (${status})` }
+      const e = await kv.get(kvKey, 'json')
+      return e && Array.isArray(e.rows) ? e : null
     } catch {
-      /* no usable copy */
+      return null
     }
-    return { rules: null, status }
+  }
+  const isPaused = async () => {
+    try {
+      if (useKv && (await kv.get(kvPause))) return true
+    } catch {
+      /* ignore */
+    }
+    return !!(await cache.match(pauseKey))
+  }
+  const setPause = async (seconds) => {
+    const s = Math.min(PROMO_MAX_PAUSE_SECONDS, Math.max(60, Math.round(seconds)))
+    const jobs = [cache.put(pauseKey, asJson({ paused: true }, s))]
+    if (useKv) jobs.push(kv.put(kvPause, '1', { expirationTtl: s }))
+    await Promise.allSettled(jobs)
+  }
+  const save = async (rows) => {
+    const jobs = [cache.put(cacheKey, asJson(rows, PROMO_CACHE_SECONDS)), cache.put(staleKey, asJson(rows, PROMO_STALE_SECONDS)), cache.delete(pauseKey)]
+    if (useKv) {
+      jobs.push(kv.put(kvKey, JSON.stringify({ rows, at: Date.now() }), { expirationTtl: PROMO_KV_KEEP_SECONDS }))
+      jobs.push(kv.delete(kvPause))
+    }
+    await Promise.allSettled(jobs)
   }
 
-  try {
-    const res = await fetch(`${origin}/api/${portfolio}/portfolios/v1/facilities/${facility}/promotions/get_by_uuids`, {
-      method: 'POST',
-      headers: { 'x-api-key': apiKey, 'content-type': 'application/json', accept: 'application/json', 'user-agent': USER_AGENT },
-      body: JSON.stringify({ promotionUuids: uuids }),
-      signal: AbortSignal.timeout(PROMO_TIMEOUT_MS),
-    })
-    if (!res.ok) return await fallback(`failed ${res.status}`)
-    const rows = await res.json()
-    if (!Array.isArray(rows)) return await fallback('failed bad response')
-    waitUntil?.(cache.put(cacheKey, json(rows, 200, { 'cache-control': `public, max-age=${PROMO_CACHE_SECONDS}` })))
-    waitUntil?.(cache.put(staleKey, json(rows, 200, { 'cache-control': `public, max-age=${PROMO_STALE_SECONDS}` })))
-    return { rules: toMap(rows), status: `ok ${rows.length}` }
-  } catch {
-    return await fallback('failed unreachable')
+  // One call to Monument, retried with back-off on a 429 or a server error. Returns { rows } or { status, retryAfter }.
+  const callMonument = async (attempts) => {
+    let status = 'failed unreachable'
+    let retryAfter = 0
+    for (let i = 0; i < attempts; i++) {
+      if (i > 0) await sleep(jitter(1000 * 2 ** (i - 1)))
+      try {
+        const res = await fetch(`${origin}/api/${portfolio}/portfolios/v1/facilities/${facility}/promotions/get_by_uuids`, {
+          method: 'POST',
+          headers: { 'x-api-key': apiKey, 'content-type': 'application/json', accept: 'application/json', 'user-agent': USER_AGENT },
+          body: JSON.stringify({ promotionUuids: uuids }),
+          signal: AbortSignal.timeout(PROMO_TIMEOUT_MS),
+        })
+        if (res.ok) {
+          const rows = await res.json()
+          return Array.isArray(rows) ? { rows } : { status: 'failed bad response', retryAfter: 0 }
+        }
+        status = `failed ${res.status}`
+        const ra = Number(res.headers.get('retry-after'))
+        if (ra > 0) retryAfter = ra
+        if (res.status !== 429 && res.status < 500) break // a 401, 403 or 404 will not get better by retrying
+      } catch {
+        status = 'failed unreachable'
+      }
+    }
+    return { status, retryAfter }
   }
+  const refresh = async (attempts) => {
+    const out = await callMonument(attempts)
+    if (out.rows) {
+      await save(out.rows)
+      return { rows: out.rows }
+    }
+    await setPause(out.retryAfter || PROMO_PAUSE_SECONDS)
+    return { status: out.status }
+  }
+
+  // 1. This data center's cache.
+  const fresh = await localRows(cacheKey)
+  if (fresh) return { rules: toMap(fresh), status: `cached ${fresh.length}` }
+
+  // 2. Shared KV.
+  const entry = await kvEntry()
+  if (entry && Date.now() - (entry.at || 0) < PROMO_KV_FRESH_SECONDS * 1000) {
+    later(cache.put(cacheKey, asJson(entry.rows, PROMO_CACHE_SECONDS)))
+    return { rules: toMap(entry.rows), status: `kv ${entry.rows.length}` }
+  }
+  const stale = entry ? entry.rows : await localRows(staleKey)
+
+  // 3. Monument, unless it is paused or another visitor's refresh is already running.
+  if (await isPaused()) {
+    return stale ? { rules: toMap(stale), status: 'stale (paused)' } : { rules: null, status: 'paused' }
+  }
+  if (stale) {
+    await setPause(PROMO_LOCK_SECONDS) // claim the refresh; a failure replaces this with the longer pause
+    later(refresh(3))
+    return { rules: toMap(stale), status: 'stale (refreshing)' }
+  }
+  const out = await refresh(2) // no copy at all, so this visitor waits for one retry
+  if (out.rows) return { rules: toMap(out.rows), status: `ok ${out.rows.length}` }
+  return { rules: null, status: out.status }
 }
 
 // Keeps each group's own promotion (groups can have different ones) and adds its rules when known.
@@ -137,7 +228,6 @@ export async function onRequestGet({ env, waitUntil }) {
   const rawKey = env.MONUMENT_API_KEY
   const key = rawKey ? rawKey.trim() : rawKey
   if (!key) return json({ error: 'MONUMENT_API_KEY is not set' }, 500)
-  const integrationKey = (env.MONUMENT_INTEGRATION_API_KEY || '').trim() || key
 
   const monEnv = env.MONUMENT_ENV === 'stg' ? 'stg' : 'prd'
   const portfolio = env.MONUMENT_PORTFOLIO || DEFAULT_PORTFOLIO
@@ -183,7 +273,8 @@ export async function onRequestGet({ env, waitUntil }) {
       origin: new URL(base).origin,
       portfolio,
       facility,
-      apiKey: integrationKey,
+      apiKey: key,
+      kv: env.PROMO_KV,
       monEnv,
       cache,
       waitUntil,
