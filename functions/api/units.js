@@ -37,6 +37,7 @@ const PROMO_KV_KEEP_SECONDS = 7 * 86400 // shared KV copy is kept this long as t
 const PROMO_PAUSE_SECONDS = 300 // after a failed refresh, do not ask Monument again for this long
 const PROMO_MAX_PAUSE_SECONDS = 900 // longest pause, even if Monument's Retry-After asks for more
 const PROMO_LOCK_SECONDS = 60 // while one visitor's refresh runs, others do not start their own
+const PROMO_RECHECK_SECONDS = 300 // saved rules that miss a unit group are re-fetched, but at most this often
 const PROMO_TIMEOUT_MS = 4000
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
 const jitter = (ms) => Math.round(ms * (0.75 + Math.random() * 0.5)) // +/- 25%, so callers do not retry in step
@@ -74,7 +75,7 @@ function pickRules(d) {
 //      back-off (about 1s, then 2s, with jitter). If it still fails, calls are paused for a few minutes.
 // The last good rules (7 days in KV, 24 hours in the local cache) are used whenever Monument fails or is paused.
 // When a last good copy exists, the visitor is answered from it at once and the refresh runs in the background.
-async function fetchPromoRules({ uuids, origin, portfolio, facility, apiKey, monEnv, cache, waitUntil, kv }) {
+async function fetchPromoRules({ uuids, expect, origin, portfolio, facility, apiKey, monEnv, cache, waitUntil, kv }) {
   const list = uuids.join(',')
   const cacheKey = new Request(`https://cache.invalid/${monEnv}/promos/${facility}/${list}`)
   const staleKey = new Request(`https://cache.invalid/${monEnv}/promos-stale/${facility}/${list}`)
@@ -84,13 +85,28 @@ async function fetchPromoRules({ uuids, origin, portfolio, facility, apiKey, mon
   const useKv = !!kv && typeof kv.get === 'function' && kvKey.length < 480
   const toMap = (rows) => new Map(rows.filter((r) => r && r.promotionUuid).map((r) => [r.promotionUuid, r]))
   const later = (p) => (waitUntil ? waitUntil(p) : p)
-  const asJson = (rows, seconds) => json(rows, 200, { 'cache-control': `public, max-age=${seconds}` })
+  const asJson = (rows, seconds) => json(rows, 200, { 'cache-control': `public, max-age=${seconds}`, 'x-saved-at': String(Date.now()) })
+
+  // Saved rules are only trusted if they list every unit group that currently has the promotion. A group added to a
+  // promotion in Monument is missing from the saved list, so the rules are re-fetched (at most every 5 minutes).
+  // Rules that carry no group list at all are trusted as they are.
+  const covers = (rows) => {
+    if (!expect) return true
+    for (const [promoUuid, groups] of expect) {
+      const row = rows.find((r) => r && r.promotionUuid === promoUuid)
+      if (!row) return false
+      if (!Array.isArray(row.unitGroupUuids)) continue
+      for (const g of groups) if (!row.unitGroupUuids.includes(g)) return false
+    }
+    return true
+  }
+  const usable = (rows, at) => covers(rows) || Date.now() - (Number(at) || 0) < PROMO_RECHECK_SECONDS * 1000
 
   const localRows = async (req) => {
     try {
       const hit = await cache.match(req)
       const rows = hit ? await hit.json() : null
-      return Array.isArray(rows) ? rows : null
+      return Array.isArray(rows) ? { rows, at: Number(hit.headers.get('x-saved-at')) || 0 } : null
     } catch {
       return null
     }
@@ -166,15 +182,16 @@ async function fetchPromoRules({ uuids, origin, portfolio, facility, apiKey, mon
 
   // 1. This data center's cache.
   const fresh = await localRows(cacheKey)
-  if (fresh) return { rules: toMap(fresh), status: `cached ${fresh.length}` }
+  if (fresh && usable(fresh.rows, fresh.at)) return { rules: toMap(fresh.rows), status: `cached ${fresh.rows.length}` }
 
   // 2. Shared KV.
   const entry = await kvEntry()
-  if (entry && Date.now() - (entry.at || 0) < PROMO_KV_FRESH_SECONDS * 1000) {
+  if (entry && Date.now() - (entry.at || 0) < PROMO_KV_FRESH_SECONDS * 1000 && usable(entry.rows, entry.at)) {
     later(cache.put(cacheKey, asJson(entry.rows, PROMO_CACHE_SECONDS)))
     return { rules: toMap(entry.rows), status: `kv ${entry.rows.length}` }
   }
-  const stale = entry ? entry.rows : await localRows(staleKey)
+  const staleLocal = fresh ? null : await localRows(staleKey)
+  const stale = entry ? entry.rows : fresh ? fresh.rows : staleLocal ? staleLocal.rows : null
 
   // 3. Monument, unless it is paused or another visitor's refresh is already running.
   if (await isPaused()) {
@@ -210,7 +227,16 @@ async function withPromoDetails(groups, ctx) {
   ].sort()
   if (!uuids.length) return { groups: slim, status: 'none needed' }
 
-  const { rules, status } = await fetchPromoRules({ ...ctx, uuids })
+  // Which unit groups currently have each promotion, so saved rules that miss one can be refreshed.
+  const expect = new Map()
+  for (const g of slim) {
+    const u = g.bestAutoAppliedPromotion?.promotionUuid
+    if (typeof u !== 'string' || !UUID_RE.test(u)) continue
+    if (!expect.has(u)) expect.set(u, new Set())
+    expect.get(u).add(g.unitGroupUuid)
+  }
+
+  const { rules, status } = await fetchPromoRules({ ...ctx, uuids, expect })
   if (!rules) return { groups: slim, status }
 
   const merged = slim.map((g) => {
